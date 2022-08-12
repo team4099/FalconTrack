@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head></head>
+
+<body>
+
+    <hr />
+    {%- for message in get_flashed_messages() %}
+    {{ message }}
+    {%- endfor %}
+
+    <h3>Students (<a href="{{ url_for('new') }}">Add Student
+        </a>)</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Current Location</th>
+                <th>Last Logged Attendance Time</th>
+                <th>Hours Logged</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.username }}</td>
+                <td>{{ student.cur_location.value }}</td>
+                <td>{{ student.last_logged_attendance_time }}</td>
+                <td>{{ student.hours_logged }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+
+</html>
