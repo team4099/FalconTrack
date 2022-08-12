@@ -1,34 +1,35 @@
-## Usage
+# FalconTrack
 
-Those templates dependencies are maintained via [pnpm](https://pnpm.io) via `pnpm up -Lri`.
+## Installation
 
-This is the reason you see a `pnpm-lock.yaml`. That being said, any package manager will work. This file can be safely be removed once you clone a template.
+Go to your preferred folder and clone the repository.
 
-```bash
-$ npm install # or pnpm install or yarn install
+```
+git clone https://github.com/team4099/FalconTrack.git
 ```
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
+Then enter the repository.
 
-## Available Scripts
+```
+cd FalconTrack
+```
 
-In the project directory, you can run:
+Set up a virtual environment by typing the following commands. *Note:* that the following applies if you have Python 3.10 installed. If you don't visit the [Python Downloads Page](https://www.python.org/downloads/) and download Python 3.10. If you would like to use another version of Python, run the same command with the version replaced.
+```
+python3.10 -m venv venv
+source venv/bin/activate
+```
 
-### `npm dev` or `npm start`
+Now, install the dependencies.
+```
+pip install -r requirements.txt
+```
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Running
 
-The page will reload if you make edits.<br>
+Simply run the app by doing
+```
+python app.py
+```
 
-### `npm run build`
-
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-## Deployment
-
-You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)
+You should be good to go! The output will tell you what it's running on (usually on `localhost:5000`)

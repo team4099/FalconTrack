@@ -1,0 +1,30 @@
+<!-- templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% for cdn in cdns %}
+    <script src="{{ cdn }}"></script>
+    {% endfor %}
+
+    <title>
+        {% if title %}
+        {{ title }}
+        {% else %} FalconTrack
+        {% endif %}
+    </title>
+</head>
+
+<body class="bg-[#262626]">
+    <div class="h-100 w-full flex items-center justify-center bg-[#262626] font-sans">
+        {% block content %}
+
+        {% endblock content %}
+    </div>
+</body>
+
+</html>
