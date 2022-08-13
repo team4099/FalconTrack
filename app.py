@@ -83,6 +83,7 @@ def generate():
                 cdns=[
                     "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
                     "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+                    "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
                 ],
                 locations=config["locations"],
                 url="Please enter all fields",
@@ -97,6 +98,7 @@ def generate():
                 cdns=[
                     "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
                     "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+                    "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
                 ],
                 locations=config["locations"],
                 url=fields["encoded"],
@@ -110,6 +112,7 @@ def generate():
             cdns=[
                 "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
                 "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+                "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
             ],
             locations=config["locations"],
         )
