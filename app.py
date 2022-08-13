@@ -8,6 +8,7 @@ import json
 import enum
 from typing import List, Set, Dict, Tuple, Optional
 from datetime import datetime
+import json
 
 load_dotenv()
 
@@ -58,6 +59,10 @@ class Students(db.Model):
 def homepage():
     return render_template("index.html", title="Home", cdns=["https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"])
 
+@app.route("/generate")
+def generate():
+    return render_template("generate.html", title="Generate QR Code", cdns=["https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js", "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js"], locations=config["locations"])
+
 @app.route("/qrcode", methods=["POST"])
 def qrcode():
     response = request.args.get("location")
@@ -84,4 +89,4 @@ def new():
 
 if __name__ == '__main__':
    db.create_all()
-   app.run(debug = True)
+   app.run(debug = True, host='0.0.0.0')
