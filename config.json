@@ -4,5 +4,6 @@
         "mc",
         "garage"
     ],
-    "name": "FalconScout"
+    "name": "FalconScout",
+    "base_url": "localhost:5000"
 }

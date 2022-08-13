@@ -15,7 +15,7 @@ load_dotenv()
 with open("config.json", "r") as json_file:
     config = json.load(json_file)
 
-base_url = "localhost:5000/"
+base_url = config["base_url"]
 
 location_list = config["locations"]
 location_dict = {loc: loc for loc in location_list}
@@ -83,6 +83,7 @@ def generate():
             "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
         ],
         locations=config["locations"],
+        base_url=base_url,
     )
 
 
