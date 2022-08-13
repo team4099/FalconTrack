@@ -58,7 +58,7 @@
     var url = document.getElementById("url");
 
     function makeCode() {
-        qrcode.makeCode(select.value);
+        qrcode.makeCode("team4099.com/attendance/qrcode?loc="+select.value);
         url.innerText = "team4099.com/attendance/qrcode?loc="+select.value
     }
 
