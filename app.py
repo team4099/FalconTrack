@@ -22,9 +22,9 @@ location_dict = {loc: loc for loc in location_list}
 Locations = enum.Enum("Locations", location_dict)
 
 app = Flask(__name__)
-QRcode(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
 app.config["SECRET_KEY"] = "the random string"
+QRcode(app)
 
 db = SQLAlchemy(app)
 
@@ -73,25 +73,46 @@ def homepage():
     )
 
 
-@app.route("/generate")
+@app.route("/generate", methods=["GET", "POST"])
 def generate():
-    return render_template(
-        "generate.html",
-        title="Generate QR Code",
-        cdns=[
-            "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
-            "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
-        ],
-        locations=config["locations"],
-        base_url=base_url,
-    )
+    if request.method == "POST":
+        if not request.form["location"] or not request.form["exprdate"]:
+            return render_template(
+                "generate.html",
+                title="Generate QR Code",
+                cdns=[
+                    "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
+                    "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+                ],
+                locations=config["locations"],
+                url="Please enter all fields",
+            )
+        else:
+            location = request.form["location"]
+            exprdate = request.form["exprdate"]
+            fields = {"encoded": f"{base_url}?loc={location}"}
+            return render_template(
+                "generate.html",
+                title="Generate QR Code",
+                cdns=[
+                    "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
+                    "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+                ],
+                locations=config["locations"],
+                url=fields["encoded"],
+                **fields,
+            )
 
-
-@app.route("/qrcode", methods=["POST"])
-def qrcode():
-    response = request.args.get("location")
-    fields = {"encoded": f"{base_url}?loc={response}"}
-    return render_template("qrcode.html", title="QRcode", **fields)
+    else:
+        return render_template(
+            "generate.html",
+            title="Generate QR Code",
+            cdns=[
+                "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
+                "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+            ],
+            locations=config["locations"],
+        )
 
 
 @app.route("/current_students")

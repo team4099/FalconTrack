@@ -10,7 +10,12 @@
     <div class="container flex flex-wrap flex-row">
 
         <div class="p-6 max-w-sm rounded-lg border border-gray-200 shadow-md bg-gray-800 dark:border-gray-700">
-            <form>
+            {%- for category, message in get_flashed_messages(with_categories = true) %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+            {%- endfor %}
+            <form action="{{ request.path }}" method="post">
                 <a href="#">
                     <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Location</h5>
                 </a>
@@ -32,11 +37,11 @@
                                 clip-rule="evenodd"></path>
                         </svg>
                     </div>
-                    <input datepicker type="text"
+                    <input name="exprdate" datepicker type="text"
                         class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         placeholder="Select date">
                 </div>
-                <button type="button" onclick="makeCode()"
+                <button type="submit"
                     class="inline-flex items-center py-2 px-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                     Generate
                     <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
@@ -53,34 +58,12 @@
             <div class="mx-auto grid place-items-center w-64 h-64 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"
                 style="border-radius: 2em;">
                 <div class="w-56 h-56 grid place-items-center bg-white" style="border-radius: 1.5em;">
-                    <div class="max-w-68 max-h-68 mx-auto" id="qrcode"
-                        style="margin-top: 0px; width:10.5rem; height: 10.5rem;"></div>
+                    <img src="{{ qrcode(encoded, box_size=6) }}">
                 </div>
             </div>
-            <h5 class="mb-2 text-sm tracking-tight text-gray-500 text-center mt-2 w-full" id="url"></h5>
+            <h5 class="mb-2 text-sm tracking-tight text-gray-500 text-center mt-2 w-full" id="url">{{ url }} </h5>
         </div>
 
     </div>
 </div>
-
-<script>
-    var base_url = "{{ base_url }}"
-
-    var qrcode = new QRCode("qrcode", {
-        text: base_url,
-        width: 200,
-        height: 200,
-    });
-
-    var select = document.getElementById("select");
-    var url = document.getElementById("url");
-
-    function makeCode() {
-        qrcode.makeCode(select.value);
-        url.innerText = base_url + "/attendance/qrcode?loc=" + select.value
-    }
-
-    makeCode();
-
-</script>
 {% endblock content %}
