@@ -23,17 +23,19 @@ Locations = enum.Enum("Locations", location_dict)
 app = Flask(__name__)
 QRcode(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
+app.config['SECRET_KEY'] = 'the random string'   
 
 db = SQLAlchemy(app)
 
 class Students(db.Model):
     id = db.Column('student_id', db.Integer, primary_key = True)
     username = db.Column(db.String(20))
+    school_id = db.Column(db.Integer)
     cur_location = db.Column(Enum(Locations), nullable=True)
     last_logged_attendance_time = db.Column(db.DateTime(), nullable = True)
     hours_logged = db.Column(db.Integer)
 
-    def __init__(self, username: str, cur_location: Optional[str] = None, last_logged_attendance_time: Optional[datetime] = datetime.now(), hours_logged: int = 0):
+    def __init__(self, username: str, school_id: int, cur_location: Optional[str] = None, last_logged_attendance_time: Optional[datetime] = datetime.now(), hours_logged: int = 0):
         """
             Initialize a student object with their username, current_location (None on initialization), the last time their attendance was logged at any location (none on init), 
             total number of hours logged (0 on init).
@@ -44,6 +46,7 @@ class Students(db.Model):
             @param hours_logged: Total number of attendance hours logged.
         """
         self.username = username
+        self.school_id = school_id
         if cur_location:
             self.cur_location = Locations(cur_location)
         else:
@@ -71,7 +74,7 @@ def new():
       if not request.form['username']:
          flash('Please enter all the fields', 'error')
       else:
-         student = Students(request.form['username'])
+         student = Students(request.form['username'], request.form["studentid"])
          
          db.session.add(student)
          db.session.commit()
