@@ -76,7 +76,7 @@ def homepage():
 @app.route("/generate", methods=["GET", "POST"])
 def generate():
     if request.method == "POST":
-        if not request.form["location"] or not request.form["exprdate"]:
+        if not request.form["location"]:
             return render_template(
                 "generate.html",
                 title="Generate QR Code",
