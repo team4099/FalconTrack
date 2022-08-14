@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import json
 import enum
 from typing import List, Set, Dict, Tuple, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 load_dotenv()
@@ -43,7 +43,7 @@ class Students(db.Model):
         school_id: int,
         cur_location: Optional[str] = None,
         last_logged_attendance_time: Optional[datetime] = datetime.now(),
-        hours_logged: int = 0,
+        hours_logged: Optional[int] = 0,
     ):
         """
         Initialize a student object with their username, current_location (None on initialization), the last time their attendance was logged at any location (none on init),
@@ -62,6 +62,31 @@ class Students(db.Model):
             self.cur_location = None
         self.last_logged_attendance_time = last_logged_attendance_time
         self.hours_logged = hours_logged
+
+
+class QRcode(db.Model):
+    id = db.Column("qrcode_id", db.Integer, primary_key=True)
+    location = db.Column(Enum(Locations))
+    expr_date = db.Column(db.DateTime(), nullable=True)
+    range_of_qrcode = db.Column(db.Integer)
+    uses = db.Column(db.Integer)
+
+    def __init__(
+        self,
+        location: str,
+        expr_date: int,
+        range_of_qrcode: Optional[int] = 300,
+    ):
+        print(expr_date)
+        cur_time = datetime.now()
+        date_obj = datetime.strptime(str(expr_date), "%H")
+        delta = timedelta(hours=date_obj.hour)
+
+        self.location = Locations(location)
+        if expr_date != 0:
+            self.expr_date = cur_time + delta
+        self.range_of_qrcode = range_of_qrcode
+        self.uses = 0
 
 
 @app.route("/")
@@ -95,11 +120,39 @@ def generate():
                 flash_color="text-red-500",
             )
         else:
+            error_catch = False
             location = request.form["location"]
-            exprdate = request.form["exprdate"]
+            exprdate = int(request.form["exprdate"])
             qrcode_range = request.form["range"]
+            try:
+                qrcode_range = int(qrcode_range)
+                if qrcode_range < 300:
+                    flash("Range is less than 300 ft.")
+                    error_catch = True
+            except ValueError:
+                flash("Range is not a number.")
+                error_catch = True
 
-            fields = {"encoded": f"{base_url}?loc={location}"}
+            if error_catch:
+                return render_template(
+                    "generate.html",
+                    title="Generate QR Code",
+                    cdns=[
+                        "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
+                        "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+                        "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
+                    ],
+                    locations=config["locations"],
+                    url="Failed to generate QRcode",
+                    flash_color="text-red-500",
+                )
+
+            qrcode = QRcode(location, exprdate, qrcode_range)
+
+            db.session.add(qrcode)
+            db.session.commit()
+
+            fields = {"encoded": f"{base_url}?id={qrcode.id}&loc={location}"}
             flash("QRcode successfully created.")
             return render_template(
                 "generate.html",
@@ -130,7 +183,7 @@ def generate():
 
 @app.route("/current_students")
 def show_all():
-    return render_template("show_all.html", students=Students.query.all())
+    return render_template("show_all.html", students=QRcode.query.all())
 
 
 @app.route("/new", methods=["GET", "POST"])
