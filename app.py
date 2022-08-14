@@ -76,7 +76,12 @@ def homepage():
 @app.route("/generate", methods=["GET", "POST"])
 def generate():
     if request.method == "POST":
-        if not request.form["location"]:
+        if (
+            not request.form["location"]
+            or not request.form["exprdate"]
+            or not request.form["range"]
+        ):
+            flash("Please fill out all fields.")
             return render_template(
                 "generate.html",
                 title="Generate QR Code",
@@ -86,12 +91,16 @@ def generate():
                     "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
                 ],
                 locations=config["locations"],
-                url="Please enter all fields",
+                url="Failed to generate QRcode",
+                flash_color="text-red-500",
             )
         else:
             location = request.form["location"]
             exprdate = request.form["exprdate"]
+            qrcode_range = request.form["range"]
+
             fields = {"encoded": f"{base_url}?loc={location}"}
+            flash("QRcode successfully created.")
             return render_template(
                 "generate.html",
                 title="Generate QR Code",
@@ -102,6 +111,7 @@ def generate():
                 ],
                 locations=config["locations"],
                 url=fields["encoded"],
+                flash_color="text-green-500",
                 **fields,
             )
 
