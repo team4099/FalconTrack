@@ -1,4 +1,4 @@
-from flask import Flask, request, flash, url_for, redirect, render_template
+from flask import Flask, request, flash, url_for, redirect, render_template, session
 from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
@@ -24,6 +24,7 @@ Locations = enum.Enum("Locations", location_dict)
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
 app.config["SECRET_KEY"] = "the random string"
+app.permanent_session_lifetime = timedelta(days=365)
 QRcode(app)
 
 db = SQLAlchemy(app)
@@ -95,6 +96,7 @@ def homepage():
         "index.html",
         title="Home",
         cdns=["https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"],
+        loginstuff="Logged in as " + session["user"],
     )
 
 
@@ -183,14 +185,14 @@ def generate():
 
 @app.route("/current_students")
 def show_all():
-    return render_template("show_all.html", students=QRcode.query.all())
+    return render_template("show_all.html", students=Students.query.all())
 
 
 @app.route("/new", methods=["GET", "POST"])
 def new():
     if request.method == "POST":
-        if not request.form["username"]:
-            flash("Please enter all the fields", "error")
+        if not request.form["username"] or not request.form["studentid"]:
+            flash("Please enter all the fields")
         else:
             student = Students(request.form["username"], request.form["studentid"])
 
@@ -200,12 +202,34 @@ def new():
             return redirect(url_for("show_all"))
     return render_template("new.html")
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    flash_color = "text-white"
+    if request.method == "POST":
+        if not request.form["username"] or not request.form["password"]:
+            flash("Please enter all the fields")
+            flash_color = "text-red-500"
+        else:
+            name = request.form["username"]
+            student = Students.query.filter(Students.username == name).first()
+            if student is not None:
+                if str(student.school_id) == request.form["password"]:
+                    flash_color = "text-green-500"
+                    session["user"] = name
+                    return redirect(url_for("homepage"))
+                else:
+                    flash("Incorrect password.")
+                    flash_color = "text-red-500"
+            else:
+                flash("Student does not exist.")
+                flash_color = "text-red-500"
+
     return render_template(
         "login.html",
         title="Home",
         cdns=["https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"],
+        flash_color=flash_color,
     )
 
 

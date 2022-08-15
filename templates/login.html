@@ -7,7 +7,7 @@
         <h1 class="text-center text-3xl text-white font-semibold border-t-2 border-gray-600 mt-2 pt-4">
             Login
         </h1>
-        <form>
+        <form action="{{ request.path }}" method="post">
             <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
                 Username
             </h1>
@@ -18,13 +18,13 @@
             <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
                 Password
             </h1>
-            <input name="password" id="password"  placeholder="451466"
+            <input name="password" id="password" placeholder="451466"
                 class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
             <br>
 
             <button type="submit"
                 class="inline-flex ml-4 mt-8 items-center py-2 px-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                Generate
+                Log In
                 <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd"
@@ -32,6 +32,11 @@
                         clip-rule="evenodd"></path>
                 </svg>
             </button>
+            {%- for category, message in get_flashed_messages(with_categories = true) %}
+            <div class="alert alert-danger p-6 {{ flash_color }}">
+                {{ message }}
+            </div>
+            {%- endfor %}
         </form>
     </div>
 </div>
