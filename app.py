@@ -200,6 +200,14 @@ def new():
             return redirect(url_for("show_all"))
     return render_template("new.html")
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    return render_template(
+        "login.html",
+        title="Home",
+        cdns=["https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"],
+    )
+
 
 if __name__ == "__main__":
     db.create_all()

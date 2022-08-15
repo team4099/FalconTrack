@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mt-10 w-[22rem] h-1/2 mx-auto">
+    <div class="">
+        <img src="{{ url_for('static', filename='/svg/logo.svg') }}" class="h-16 mx-auto" alt="4099 Falcon Logo">
+        <h1 class="text-center text-3xl text-white font-semibold border-t-2 border-gray-600 mt-2 pt-4">
+            Login
+        </h1>
+        <form>
+            <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
+                Username
+            </h1>
+            <input name="username" id="username" placeholder="saraansh"
+                class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
+            <br>
+
+            <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
+                Password
+            </h1>
+            <input name="password" id="password"  placeholder="451466"
+                class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
+            <br>
+
+            <button type="submit"
+                class="inline-flex ml-4 mt-8 items-center py-2 px-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                Generate
+                <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd"
+                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                        clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock content %}
