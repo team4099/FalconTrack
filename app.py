@@ -102,7 +102,7 @@ def set_base_param():
             "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
             "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
             "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-            "https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"
+            "https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js",
         ],
         "name": "",
         "isLoggedIn": False,
@@ -252,16 +252,37 @@ def login():
         "login.html", title="Home", flash_color=flash_color, base=set_base_param()
     )
 
+
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     flash_color = "text-white"
+    if request.method == "POST":
+        if "student-add" in request.form:
+            if not request.form["username"] or not request.form["studentid"]:
+                flash("Please enter all the fields")
+                flash_color = "text-red-500"
+            else:
+                try:
+                    is_admin = request.form["is_admin"] == "on"
+                except KeyError:
+                    is_admin = False
+
+                student_name = request.form["username"]
+                student_id = request.form["studentid"]
+
+                student = Students(student_name, student_id, is_admin)
+
+                db.session.add(student)
+                db.session.commit()
+                flash(f"{student_name} was successfully added")
+                flash_color = "text-green-500"
 
     return render_template(
         "dashboard.html",
         title="Dashboard",
         flash_color=flash_color,
         base=set_base_param(),
-        students=Students.query.all()
+        students=Students.query.all(),
     )
 
 

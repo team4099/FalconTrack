@@ -17,20 +17,28 @@
             <h2 class="text-md text-gray-500 font-medium pb-6">
                 Add members and change their status as well as security
             </h2>
+            {%- for category, message in get_flashed_messages(with_categories = true) %}
+            <div class="alert alert-danger {{ flash_color }}">
+                {{ message }}
+            </div>
+            {%- endfor %}
+
         </div>
         <div clas="w-3/5 pl-8 float-right">
             <form action="{{ request.path }}" method="post">
                 <div class="flex justify-end">
                     <div class="mx-2">
                         <label for="username" class="text-white font-medium">Name</label><br>
-                        <input type="text" name="username" placeholder="saraansh" class="w-[16.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"/><br>
+                        <input type="text" name="username" placeholder="saraansh"
+                            class="w-[16.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
                     </div>
                     <div class="mx-2">
                         <label for="studentid" class="text-white font-medium">Student ID</label><br>
-                        <input type="text" name="studentid" placeholder="451466" class="w-[16.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"/><br>
+                        <input type="text" name="studentid" placeholder="451466"
+                            class="w-[16.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
                     </div>
                 </div>
-                <button type="submit"
+                <button type="submit" id="student-add" name="student-add"
                     class="mx-2 mt-3 float-right inline-flex items-center py-2 px-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-amber-400 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                     Add
                     <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
@@ -71,7 +79,8 @@
                     <tbody>
                         {% for student in students %}
                         <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
-                            <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            <th scope="row"
+                                class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ student.username }}
                             </th>
                             <td class="py-4 px-6">
