@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="w-2/3 mx-auto mt-5">
+    <h1 class="text-4xl text-white font-semibold mb-2">
+        Dashboard
+    </h1>
+    <h2 class="text-lg text-gray-500 font-medium pb-6 border-b-2 border-gray-800 mb-6">
+        Manage users and view logs
+    </h2>
+    <div class="container border-b-2 border-gray-800 mb-6 h-36">
+        <div class="w-1/4 float-left">
+            <h1 class="text-xl text-white font-semibold mb-2">
+                Add team members
+            </h1>
+            <h2 class="text-md text-gray-500 font-medium pb-6">
+                Add members and change their status as well as security
+            </h2>
+        </div>
+        <div clas="w-3/5 pl-8 float-right">
+            <form action="{{ request.path }}" method="post">
+                <div class="flex justify-end">
+                    <div class="mx-2">
+                        <label for="username" class="text-white font-medium">Name</label><br>
+                        <input type="text" name="username" placeholder="saraansh" class="w-[16.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"/><br>
+                    </div>
+                    <div class="mx-2">
+                        <label for="studentid" class="text-white font-medium">Student ID</label><br>
+                        <input type="text" name="studentid" placeholder="451466" class="w-[16.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"/><br>
+                    </div>
+                </div>
+                <button type="submit"
+                    class="mx-2 mt-3 float-right inline-flex items-center py-2 px-3 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-amber-400 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    Add
+                    <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                            d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="container mb-6 h-36">
+        <div class="w-1/4 float-left">
+            <h1 class="text-xl text-white font-semibold mb-2">
+                View team members
+            </h1>
+            <h2 class="text-md text-gray-500 font-medium pb-6">
+                View all members added to FalconTrack
+            </h2>
+        </div>
+        <div class="w-3/5 pl-8 float-right">
+            <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="py-3 px-6">
+                                Name
+                            </th>
+                            <th scope="col" class="py-3 px-6">
+                                Id
+                            </th>
+                            <th scope="col" class="py-3 px-6">
+                                Last Logged
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
+                            <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ student.username }}
+                            </th>
+                            <td class="py-4 px-6">
+                                {{ student.school_id }}
+                            </td>
+                            <td class="py-4 px-6">
+                                {{ student.last_logged_attendance_time }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
