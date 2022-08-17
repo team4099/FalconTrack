@@ -102,7 +102,6 @@ def set_base_param():
             "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
             "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
             "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-            "https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js",
         ],
         "name": "",
         "isLoggedIn": False,
