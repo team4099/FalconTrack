@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="w-2/3 mx-auto mt-5">
+<div class="w-2/3 mx-auto mt-5 mb-6">
     <h1 class="text-4xl text-white font-semibold ">
-        Home
-    </h1>
-    <p class="text-green-500 p-6">
         {% if base["isLoggedIn"] %}
-            {{ "hello " + base["name"] }}
+            {{ "hello, " + base["name"] }}
+        {% else %}
+            Home
         {% endif %}
-    </p>
+    </h1>
 </div>
 {% endblock content %}
