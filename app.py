@@ -30,6 +30,7 @@ QRcode(app)
 
 db = SQLAlchemy(app)
 
+
 class Students(db.Model):
     id = db.Column("student_id", db.Integer, primary_key=True)
     username = db.Column(db.String(20))
@@ -89,6 +90,7 @@ class QRcode(db.Model):
         self.range_of_qrcode = range_of_qrcode
         self.uses = 0
 
+
 def set_base_param():
     data = {
         "cdn": [
@@ -98,7 +100,7 @@ def set_base_param():
         ],
         "name": "",
         "isLoggedIn": False,
-        "isAdmin": False
+        "isAdmin": False,
     }
     try:
         data["name"] = session["user"]
@@ -110,16 +112,13 @@ def set_base_param():
     except:
         data["isLoggedIn"] = False
 
-    return(data)
+    return data
+
 
 @app.route("/")
 def homepage():
 
-    return render_template(
-        "index.html",
-        title="Home",
-        base=set_base_param()
-    )
+    return render_template("index.html", title="Home", base=set_base_param())
 
 
 @app.route("/generate", methods=["GET", "POST"])
@@ -136,8 +135,8 @@ def generate():
                 title="Generate QR Code",
                 locations=config["locations"],
                 url="Failed to generate QRcode",
-                flash_color="text-red-500",\
-                base=set_base_param()
+                flash_color="text-red-500",
+                base=set_base_param(),
             )
         else:
             error_catch = False
@@ -160,7 +159,7 @@ def generate():
                     locations=config["locations"],
                     url="Failed to generate QRcode",
                     flash_color="text-red-500",
-                    base=set_base_param()
+                    base=set_base_param(),
                 )
 
             qrcode = QRcode(location, exprdate, qrcode_range)
@@ -176,8 +175,7 @@ def generate():
                 locations=config["locations"],
                 url=fields["encoded"],
                 flash_color="text-green-500",
-                base=set_base_param()
-                **fields,
+                base=set_base_param() ** fields,
             )
 
     else:
@@ -185,8 +183,7 @@ def generate():
             "generate.html",
             title="Generate QR Code",
             locations=config["locations"],
-            base=set_base_param()
-            
+            base=set_base_param(),
         )
 
 
@@ -208,6 +205,13 @@ def new():
             flash("Record was successfully added")
             return redirect(url_for("show_all"))
     return render_template("new.html")
+
+
+@app.route("/logout", methods=["GET"])
+def logout():
+    session["user"] = None
+    session["isLoggedIn"] = False
+    return redirect(url_for("homepage"))
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -233,10 +237,7 @@ def login():
                 flash_color = "text-red-500"
 
     return render_template(
-        "login.html",
-        title="Home",
-        flash_color=flash_color,
-        base=set_base_param()
+        "login.html", title="Home", flash_color=flash_color, base=set_base_param()
     )
 
 
