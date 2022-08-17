@@ -17,6 +17,12 @@
             <h2 class="text-md text-gray-500 font-medium pb-6">
                 Add members and change their status as well as security
             </h2>
+            {%- for category, message in get_flashed_messages(with_categories = true) %}
+            <div class="alert alert-danger {{ flash_color }}">
+                {{ message }}
+            </div>
+            {%- endfor %}
+
         </div>
         <div clas="w-3/5 pl-8 float-right">
             <form action="{{ request.path }}" method="post">
@@ -82,7 +88,8 @@
                     <tbody>
                         {% for student in students %}
                         <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
-                            <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            <th scope="row"
+                                class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ student.username }}
                             </th>
                             <td class="py-4 px-6">
