@@ -285,6 +285,11 @@ def dashboard():
         students=Students.query.all(),
     )
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template("404.html", title="404 - Page Not Found", base=set_base_param())
+
 
 if __name__ == "__main__":
     db.create_all()
