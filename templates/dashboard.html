@@ -29,22 +29,25 @@
                 <div class="flex justify-end">
                     <div class="mx-2">
                         <label for="username" class="text-white font-medium">Name</label><br>
-                        <input type="text" name="username" placeholder="saraansh" class="w-[13rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"/><br>
+                        <input type="text" name="username" placeholder="saraansh"
+                            class="w-[13rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
                     </div>
                     <div class="mx-2">
                         <label for="studentid" class="text-white font-medium">Student ID</label><br>
-                        <input type="text" name="studentid" placeholder="451466" class="w-[13rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"/><br>
+                        <input type="text" name="studentid" placeholder="451466"
+                            class="w-[13rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
                     </div>
                     <div class="mx-2">
                         <label for="admin" class="text-white font-medium">Perms</label><br>
-                        <select type="checkbox" name="admin" placeholder="451466" class="w-[6rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"/><br>
-                            <option value="student">student</option>
-                            <option value="admin">admin</option>
-                            <option value="root">root</option>
+                        <select type="checkbox" name="student_type" placeholder="student"
+                            class="w-[6rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
+                        <option value="student">student</option>
+                        <option value="admin">admin</option>
+                        <option value="root">root</option>
                         </select>
                     </div>
                 </div>
-                <button type="submit"
+                <button type="submit" id="student-add" name="student-add"
                     class="mx-2 mt-3 float-right inline-flex items-center py-2 px-6 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-amber-400 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                     Add
                     <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
@@ -101,7 +104,7 @@
                             <td class="py-4 px-6">
                                 {{ student.is_admin }}
                             </td>
-                            
+
                         </tr>
                         {% endfor %}
                     </tbody>
