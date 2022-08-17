@@ -6,7 +6,9 @@
         Home
     </h1>
     <p class="text-green-500 p-6">
-        {{ loginstuff }}
+        {% if base["isLoggedIn"] %}
+            {{ "hello " + base["name"] }}
+        {% endif %}
     </p>
 </div>
 {% endblock content %}

@@ -25,10 +25,10 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
 app.config["SECRET_KEY"] = "the random string"
 app.permanent_session_lifetime = timedelta(days=365)
+
 QRcode(app)
 
 db = SQLAlchemy(app)
-
 
 class Students(db.Model):
     id = db.Column("student_id", db.Integer, primary_key=True)
@@ -89,14 +89,36 @@ class QRcode(db.Model):
         self.range_of_qrcode = range_of_qrcode
         self.uses = 0
 
+def set_base_param():
+    data = {
+        "cdn": [
+            "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
+            "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
+            "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
+        ],
+        "name": "",
+        "isLoggedIn": False,
+        "isAdmin": False
+    }
+    try:
+        data["name"] = session["user"]
+    except:
+        data["name"] = ""
+
+    try:
+        data["isLoggedIn"] = session["user"] != None
+    except:
+        data["isLoggedIn"] = False
+
+    return(data)
 
 @app.route("/")
 def homepage():
+
     return render_template(
         "index.html",
         title="Home",
-        cdns=["https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"],
-        loginstuff="Logged in as " + session["user"],
+        base=set_base_param()
     )
 
 
@@ -112,14 +134,10 @@ def generate():
             return render_template(
                 "generate.html",
                 title="Generate QR Code",
-                cdns=[
-                    "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
-                    "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
-                    "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-                ],
                 locations=config["locations"],
                 url="Failed to generate QRcode",
-                flash_color="text-red-500",
+                flash_color="text-red-500",\
+                base=set_base_param()
             )
         else:
             error_catch = False
@@ -139,14 +157,10 @@ def generate():
                 return render_template(
                     "generate.html",
                     title="Generate QR Code",
-                    cdns=[
-                        "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
-                        "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
-                        "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-                    ],
                     locations=config["locations"],
                     url="Failed to generate QRcode",
                     flash_color="text-red-500",
+                    base=set_base_param()
                 )
 
             qrcode = QRcode(location, exprdate, qrcode_range)
@@ -159,14 +173,10 @@ def generate():
             return render_template(
                 "generate.html",
                 title="Generate QR Code",
-                cdns=[
-                    "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
-                    "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
-                    "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-                ],
                 locations=config["locations"],
                 url=fields["encoded"],
                 flash_color="text-green-500",
+                base=set_base_param()
                 **fields,
             )
 
@@ -174,12 +184,9 @@ def generate():
         return render_template(
             "generate.html",
             title="Generate QR Code",
-            cdns=[
-                "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
-                "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
-                "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-            ],
             locations=config["locations"],
+            base=set_base_param()
+            
         )
 
 
@@ -228,8 +235,8 @@ def login():
     return render_template(
         "login.html",
         title="Home",
-        cdns=["https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js"],
         flash_color=flash_color,
+        base=set_base_param()
     )
 
 
