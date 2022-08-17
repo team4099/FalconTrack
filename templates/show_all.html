@@ -18,6 +18,7 @@
             <tr>
                 <th>name</th>
                 <th>id</th>
+                <th>is_admin</th>
                 <th>location</th>
                 <th>last logged attendance time</th>
                 <th>hours_logged</th>
@@ -29,6 +30,7 @@
             <tr>
                 <td>{{ student.username }}</td>
                 <td>{{ student.school_id }}</td>
+                <td>{{ student.is_admin }}</td>
                 <td>{{ student.cur_location.value }}</td>
                 <td>{{ student.last_logged_attendance_time }}</td>
                 <td>{{ student.hours_logged }}</td>
