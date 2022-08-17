@@ -124,7 +124,9 @@ def set_base_param():
 @app.route("/")
 def homepage():
 
-    return render_template("index.html", title="Home", base=set_base_param())
+    return render_template(
+        "index.html", title="Home", base=set_base_param(), flash_color="text-white"
+    )
 
 
 @app.route("/generate", methods=["GET", "POST"])
@@ -181,7 +183,8 @@ def generate():
                 locations=config["locations"],
                 url=fields["encoded"],
                 flash_color="text-green-500",
-                base=set_base_param() ** fields,
+                base=set_base_param(),
+                **fields,
             )
 
     else:
@@ -263,7 +266,10 @@ def dashboard():
                 flash_color = "text-red-500"
             else:
                 try:
-                    is_admin = request.form["is_admin"] == "on"
+                    is_admin = (
+                        request.form["student_type"] == "admin"
+                        or request.form["student_type"] == "root"
+                    )
                 except KeyError:
                     is_admin = False
 
@@ -289,6 +295,21 @@ def dashboard():
 def page_not_found(e):
     # note that we set the 404 status explicitly
     return render_template("404.html", title="404 - Page Not Found", base=set_base_param())
+
+
+@app.route("/attendance")
+def log():
+    flash_color = "text-white"
+    id = request.args.get("id")
+    location = request.args.get("loc")
+    print(id, location)
+    if id is None or location is None:
+        flash_color = "text-red-500"
+        flash("Error in processing location logging.")
+
+    return render_template(
+        "index.html", title="Home", base=set_base_param(), flash_color=flash_color
+    )
 
 
 if __name__ == "__main__":

@@ -4,10 +4,15 @@
 <div class="w-2/3 mx-auto mt-5 mb-6">
     <h1 class="text-4xl text-white font-semibold ">
         {% if base["isLoggedIn"] %}
-            {{ "hello, " + base["name"] }}
+        {{ "hello, " + base["name"] }}
         {% else %}
-            Home
+        Home
         {% endif %}
     </h1>
+    {%- for category, message in get_flashed_messages(with_categories = true) %}
+    <div class="alert alert-danger p-6 {{ flash_color }}">
+        {{ message }}
+    </div>
+    {%- endfor %}
 </div>
 {% endblock content %}
