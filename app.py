@@ -261,6 +261,7 @@ def login():
                 if str(student.school_id) == request.form["password"]:
                     flash_color = "text-green-500"
                     session["user"] = name
+                    session["isLoggedIn"] = True
                     session["is_admin"] = student.is_admin
                     return redirect(url_for("homepage"))
                 else:
