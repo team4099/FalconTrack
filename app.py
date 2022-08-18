@@ -1,4 +1,4 @@
-from flask import Flask, request, flash, url_for, redirect, render_template, session
+from flask import Flask, request, flash, url_for, redirect, render_template, session, jsonify
 from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
@@ -102,6 +102,7 @@ def set_base_param():
             "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
             "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
             "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
+            "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
         ],
         "name": "",
         "isLoggedIn": False,
@@ -289,6 +290,26 @@ def dashboard():
         base=set_base_param(),
         students=Students.query.all(),
     )
+
+@app.route('/process_student_change', methods=['POST', 'GET'])
+def process_student_change():
+    if request.method == "POST":
+        student_data = request.get_json()
+        print(student_data)
+
+        student_edit = Students.query.filter_by(id=student_data[0]["id"]).first()
+        student_edit.username = student_data[1]["username"]
+        student_edit.school_id = student_data[2]["school_id"]
+
+        if student_data[3]["is_admin"] == "student":
+            student_edit.is_admin = False
+        else:
+            student_edit.is_admin = True
+
+        db.session.commit()
+
+        return jsonify({"action_code": "200"})
+
 
 @app.errorhandler(404)
 def page_not_found(e):
