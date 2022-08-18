@@ -2,13 +2,6 @@
 
 {% block content %}
 <div class="w-2/3 mx-auto mt-5 mb-6">
-    <h1 class="text-4xl text-white font-semibold ">
-        {% if base["isLoggedIn"] %}
-        {{ "hello, " + base["name"] }}
-        {% else %}
-        Home
-        {% endif %}
-    </h1>
     <button onclick="getLocation()">Try It</button>
 
     <p id="demo"></p>

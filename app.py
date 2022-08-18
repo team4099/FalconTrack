@@ -1,4 +1,13 @@
-from flask import Flask, request, flash, url_for, redirect, render_template, session, jsonify
+from flask import (
+    Flask,
+    request,
+    flash,
+    url_for,
+    redirect,
+    render_template,
+    session,
+    jsonify,
+)
 from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Enum
@@ -102,7 +111,7 @@ def set_base_param():
             "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
             "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
             "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-            "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+            "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js",
         ],
         "name": "",
         "isLoggedIn": False,
@@ -117,6 +126,11 @@ def set_base_param():
         data["isLoggedIn"] = session["user"] != None
     except:
         data["isLoggedIn"] = False
+
+    try:
+        data["isAdmin"] = session["is_admin"]
+    except:
+        data["isAdmin"] = False
 
     return data
 
@@ -171,7 +185,7 @@ def generate():
                 )
 
             qrcode = QRcode(location, exprdate, qrcode_range)
-
+            db.session.flush()
             db.session.add(qrcode)
             db.session.commit()
 
@@ -214,7 +228,7 @@ def new():
             student = Students(
                 request.form["username"], request.form["studentid"], is_admin
             )
-
+            db.session.flush()
             db.session.add(student)
             db.session.commit()
             flash("Record was successfully added")
@@ -226,6 +240,7 @@ def new():
 def logout():
     session["user"] = None
     session["isLoggedIn"] = False
+    session["is_admin"] = False
     return redirect(url_for("homepage"))
 
 
@@ -243,6 +258,7 @@ def login():
                 if str(student.school_id) == request.form["password"]:
                     flash_color = "text-green-500"
                     session["user"] = name
+                    session["is_admin"] = student.is_admin
                     return redirect(url_for("homepage"))
                 else:
                     flash("Incorrect password.")
@@ -275,25 +291,29 @@ def dashboard():
 
                 student_name = request.form["username"]
                 student_id = request.form["studentid"]
-
+                db.session.flush()
                 student = Students(student_name, student_id, is_admin)
 
                 db.session.add(student)
                 db.session.commit()
                 flash(f"{student_name} was successfully added")
                 flash_color = "text-green-500"
+    if Students.query.filter_by(username=session["user"]).first().is_admin == True:
+        return render_template(
+            "dashboard.html",
+            title="Dashboard",
+            flash_color=flash_color,
+            base=set_base_param(),
+            students=Students.query.all(),
+        )
+    else:
+        return redirect(url_for("error"))
 
-    return render_template(
-        "dashboard.html",
-        title="Dashboard",
-        flash_color=flash_color,
-        base=set_base_param(),
-        students=Students.query.all(),
-    )
 
-@app.route('/process_student_change', methods=['POST', 'GET'])
+@app.route("/process_student_change", methods=["POST", "GET"])
 def process_student_change():
     if request.method == "POST":
+        db.session.flush()
         student_data = request.get_json()
         print(student_data)
 
@@ -311,10 +331,19 @@ def process_student_change():
         return jsonify({"action_code": "200"})
 
 
+@app.route("/error")
+def error():
+    return render_template(
+        "access_denied.html", title="Access Denied", base=set_base_param()
+    )
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     # note that we set the 404 status explicitly
-    return render_template("404.html", title="404 - Page Not Found", base=set_base_param())
+    return render_template(
+        "404.html", title="404 - Page Not Found", base=set_base_param()
+    )
 
 
 @app.route("/attendance")

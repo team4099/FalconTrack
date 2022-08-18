@@ -40,11 +40,10 @@
                     <div class="mx-2">
                         <label for="admin" class="text-white font-medium">Perms</label><br>
                         <select type="checkbox" name="student_type" placeholder="student"
-                            class="w-[6rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" 
-                        /><br>
-                            <option value="student">student</option>
-                            <option value="admin">admin</option>
-                            <option value="root">root</option>
+                            class="w-[6rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
+                        <option value="student">student</option>
+                        <option value="admin">admin</option>
+                        <option value="root">root</option>
                         </select>
                     </div>
                 </div>
@@ -75,7 +74,7 @@
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <th scope="col" class="py-3 px-6 w-10" >
+                            <th scope="col" class="py-3 px-6 w-10">
                                 Name
                             </th>
                             <th scope="col" class="py-3 px-6 w-10">
@@ -92,29 +91,27 @@
                     <tbody>
                         {% for student in students %}
                         <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
-                            <th scope="row" class="py-4 px-3 pr-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                <input class="bg-transparent w-[6rem] h-max border-none focus:border-gray-700" type="text"
-                                    name="username" value="{{ student.username }}" id="{{ student.id }}.username"
-                                    onChange="update_student({{ student.id }})" 
-                                />
+                            <th scope="row"
+                                class="py-4 px-3 pr-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                <input class="bg-transparent w-[6rem] h-max border-none focus:border-gray-700"
+                                    type="text" name="username" value="{{ student.username }}"
+                                    id="{{ student.id }}.username" onChange="update_student({{ student.id }})" />
                             </th>
                             <td class="py-4 px-3">
-                                <input class="bg-transparent w-[5rem] h-max border-none focus:border-gray-700" type="text"
-                                    name="school_id" value="{{ student.school_id }}" id="{{ student.id }}.school_id"
-                                    onChange="update_student({{ student.id }})" 
-                                />
+                                <input class="bg-transparent w-[5rem] h-max border-none focus:border-gray-700"
+                                    type="text" name="school_id" value="{{ student.school_id }}"
+                                    id="{{ student.id }}.school_id" onChange="update_student({{ student.id }})" />
                             </td>
                             <td class="py-4 px-3">
                                 {{ student.last_logged_attendance_time }}
                             </td>
                             <td class="py-4 px-3">
                                 <select name="student_type" placeholder="student"
-                                    class="w-[6rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" 
-                                    id="{{ student.id }}.is_admin" onChange="update_student({{ student.id }})"
-                                />
-                                    <option value="student">student</option>
-                                    <option value="admin">admin</option>
-                                    <option value="root">root</option>
+                                    class="w-[6rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2"
+                                    id="{{ student.id }}.is_admin" onChange="update_student({{ student.id }})" />
+                                <option value="student">student</option>
+                                <option value="admin">admin</option>
+                                <option value="root">root</option>
                                 </select>
                             </td>
 
@@ -128,13 +125,13 @@
 </div>
 
 <script>
-    function update_student(id){
+    function update_student(id) {
 
         var server_data = [
-            {"id": id},
-            {"username": document.getElementById(id+".username").value},
-            {"school_id": document.getElementById(id+".school_id").value},
-            {"is_admin": document.getElementById(id+".is_admin").value}
+            { "id": id },
+            { "username": document.getElementById(id + ".username").value },
+            { "school_id": document.getElementById(id + ".school_id").value },
+            { "is_admin": document.getElementById(id + ".is_admin").value }
         ];
 
         $.ajax({
@@ -143,14 +140,14 @@
             data: JSON.stringify(server_data),
             contentType: "application/json",
             dataType: 'json',
-            success: function(result) {
-                
-            } 
-        });
-    }   
+            success: function (result) {
 
-    {% for student in students%}
-        document.getElementById("{{ student.id }}.is_admin").value={% if student.is_admin %}"admin"{% else %}"student"{% endif %};
+            }
+        });
+    }
+
+    {% for student in students %}
+    document.getElementById("{{ student.id }}.is_admin").value = {% if student.is_admin %}"admin"{% else %} "student"{% endif %};
     {% endfor %}
 
 </script>
