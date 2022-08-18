@@ -145,36 +145,14 @@ def homepage():
 
 @app.route("/generate", methods=["GET", "POST"])
 def generate():
-    if request.method == "POST":
-        if (
-            not request.form["location"]
-            or not request.form["exprdate"]
-            or not request.form["range"]
-        ):
-            flash("Please fill out all fields.")
-            return render_template(
-                "generate.html",
-                title="Generate QR Code",
-                locations=config["locations"],
-                url="Failed to generate QRcode",
-                flash_color="text-red-500",
-                base=set_base_param(),
-            )
-        else:
-            error_catch = False
-            location = request.form["location"]
-            exprdate = int(request.form["exprdate"])
-            qrcode_range = request.form["range"]
-            try:
-                qrcode_range = int(qrcode_range)
-                if qrcode_range < 300:
-                    flash("Range is less than 300 ft.")
-                    error_catch = True
-            except ValueError:
-                flash("Range is not a number.")
-                error_catch = True
-
-            if error_catch:
+    if session["isLoggedIn"]:
+        if request.method == "POST":
+            if (
+                not request.form["location"]
+                or not request.form["exprdate"]
+                or not request.form["range"]
+            ):
+                flash("Please fill out all fields.")
                 return render_template(
                     "generate.html",
                     title="Generate QR Code",
@@ -183,31 +161,56 @@ def generate():
                     flash_color="text-red-500",
                     base=set_base_param(),
                 )
+            else:
+                error_catch = False
+                location = request.form["location"]
+                exprdate = int(request.form["exprdate"])
+                qrcode_range = request.form["range"]
+                try:
+                    qrcode_range = int(qrcode_range)
+                    if qrcode_range < 300:
+                        flash("Range is less than 300 ft.")
+                        error_catch = True
+                except ValueError:
+                    flash("Range is not a number.")
+                    error_catch = True
 
-            qrcode = QRcode(location, exprdate, qrcode_range)
-            db.session.flush()
-            db.session.add(qrcode)
-            db.session.commit()
+                if error_catch:
+                    return render_template(
+                        "generate.html",
+                        title="Generate QR Code",
+                        locations=config["locations"],
+                        url="Failed to generate QRcode",
+                        flash_color="text-red-500",
+                        base=set_base_param(),
+                    )
 
-            fields = {"encoded": f"{base_url}?id={qrcode.id}&loc={location}"}
-            flash("QRcode successfully created.")
+                qrcode = QRcode(location, exprdate, qrcode_range)
+                db.session.flush()
+                db.session.add(qrcode)
+                db.session.commit()
+
+                fields = {"encoded": f"{base_url}?id={qrcode.id}&loc={location}"}
+                flash("QRcode successfully created.")
+                return render_template(
+                    "generate.html",
+                    title="Generate QR Code",
+                    locations=config["locations"],
+                    url=fields["encoded"],
+                    flash_color="text-green-500",
+                    base=set_base_param(),
+                    **fields,
+                )
+
+        else:
             return render_template(
                 "generate.html",
                 title="Generate QR Code",
                 locations=config["locations"],
-                url=fields["encoded"],
-                flash_color="text-green-500",
                 base=set_base_param(),
-                **fields,
             )
-
     else:
-        return render_template(
-            "generate.html",
-            title="Generate QR Code",
-            locations=config["locations"],
-            base=set_base_param(),
-        )
+        return redirect(url_for("error"))
 
 
 @app.route("/current_students")
@@ -274,61 +277,64 @@ def login():
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-    flash_color = "text-white"
-    if request.method == "POST":
-        if "student-add" in request.form:
-            if not request.form["username"] or not request.form["studentid"]:
-                flash("Please enter all the fields")
-                flash_color = "text-red-500"
-            else:
-                try:
-                    is_admin = (
-                        request.form["student_type"] == "admin"
-                        or request.form["student_type"] == "root"
-                    )
-                except KeyError:
-                    is_admin = False
+    if session["isLoggedIn"]:
+        flash_color = "text-white"
+        if request.method == "POST":
+            if "student-add" in request.form:
+                if not request.form["username"] or not request.form["studentid"]:
+                    flash("Please enter all the fields")
+                    flash_color = "text-red-500"
+                else:
+                    try:
+                        is_admin = (
+                            request.form["student_type"] == "admin"
+                            or request.form["student_type"] == "root"
+                        )
+                    except KeyError:
+                        is_admin = False
 
-                student_name = request.form["username"]
-                student_id = request.form["studentid"]
-                db.session.flush()
-                student = Students(student_name, student_id, is_admin)
+                    student_name = request.form["username"]
+                    student_id = request.form["studentid"]
+                    db.session.flush()
+                    student = Students(student_name, student_id, is_admin)
 
-                db.session.add(student)
-                db.session.commit()
-                flash(f"{student_name} was successfully added")
-                flash_color = "text-green-500"
-    if Students.query.filter_by(username=session["user"]).first().is_admin == True:
-        return render_template(
-            "dashboard.html",
-            title="Dashboard",
-            flash_color=flash_color,
-            base=set_base_param(),
-            students=Students.query.all(),
-        )
-    else:
-        return redirect(url_for("error"))
+                    db.session.add(student)
+                    db.session.commit()
+                    flash(f"{student_name} was successfully added")
+                    flash_color = "text-green-500"
+        if Students.query.filter_by(username=session["user"]).first().is_admin == True:
+            return render_template(
+                "dashboard.html",
+                title="Dashboard",
+                flash_color=flash_color,
+                base=set_base_param(),
+                students=Students.query.all(),
+            )
+    return redirect(url_for("error"))
 
 
 @app.route("/process_student_change", methods=["POST", "GET"])
 def process_student_change():
-    if request.method == "POST":
-        db.session.flush()
-        student_data = request.get_json()
-        print(student_data)
+    if session["isLoggedIn"]:
+        if request.method == "POST":
+            db.session.flush()
+            student_data = request.get_json()
+            print(student_data)
 
-        student_edit = Students.query.filter_by(id=student_data[0]["id"]).first()
-        student_edit.username = student_data[1]["username"]
-        student_edit.school_id = student_data[2]["school_id"]
+            student_edit = Students.query.filter_by(id=student_data[0]["id"]).first()
+            student_edit.username = student_data[1]["username"]
+            student_edit.school_id = student_data[2]["school_id"]
 
-        if student_data[3]["is_admin"] == "student":
-            student_edit.is_admin = False
-        else:
-            student_edit.is_admin = True
+            if student_data[3]["is_admin"] == "student":
+                student_edit.is_admin = False
+            else:
+                student_edit.is_admin = True
 
-        db.session.commit()
+            db.session.commit()
 
-        return jsonify({"action_code": "200"})
+            return jsonify({"action_code": "200"})
+    else:
+        return redirect(url_for("error"))
 
 
 @app.route("/error")
@@ -348,17 +354,19 @@ def page_not_found(e):
 
 @app.route("/attendance")
 def log():
-    flash_color = "text-white"
-    id = request.args.get("id")
-    location = request.args.get("loc")
-    print(id, location)
-    if id is None or location is None:
-        flash_color = "text-red-500"
-        flash("Error in processing location logging.")
+    if session["isLoggedIn"]:
+        flash_color = "text-white"
+        id = request.args.get("id")
+        location = request.args.get("loc")
+        print(id, location)
+        if id is None or location is None:
+            flash_color = "text-red-500"
+            flash("Error in processing location logging.")
 
-    return render_template(
-        "index.html", title="Home", base=set_base_param(), flash_color=flash_color
-    )
+        return render_template(
+            "index.html", title="Home", base=set_base_param(), flash_color=flash_color
+        )
+    return redirect(url_for("error"))
 
 
 if __name__ == "__main__":
