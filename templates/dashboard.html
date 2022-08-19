@@ -8,7 +8,13 @@
     </h1>
     <h2 class="text-lg text-gray-500 font-medium pb-6 border-b-2 border-gray-800 mb-6">
         Manage users and view logs
+        {%- for category, message in get_flashed_messages(with_categories = true) %}
+        <div class="alert alert-danger mt-2 {{ flash_color }}">
+            {{ message }}
+        </div>
+        {%- endfor %}
     </h2>
+
     <div class="container border-b-2 border-gray-800 mb-6 h-36">
         <div class="w-1/4 float-left">
             <h1 class="text-xl text-white font-semibold mb-2">
@@ -17,11 +23,6 @@
             <h2 class="text-md text-gray-500 font-medium pb-6">
                 Add members and change their status as well as security
             </h2>
-            {%- for category, message in get_flashed_messages(with_categories = true) %}
-            <div class="alert alert-danger {{ flash_color }}">
-                {{ message }}
-            </div>
-            {%- endfor %}
 
         </div>
         <div clas="w-3/5 pl-8 float-right">
@@ -60,7 +61,7 @@
             </form>
         </div>
     </div>
-    <div class="container mb-6 h-36">
+    <div class="container border-b-2 border-gray-800 mb-6 h-96">
         <div class="w-1/4 float-left">
             <h1 class="text-xl text-white font-semibold mb-2">
                 View team members
@@ -69,7 +70,7 @@
                 View all members added to FalconTrack
             </h2>
         </div>
-        <div class="w-3/5 pl-8 h-96 float-right overflow-y-auto">
+        <div class="w-3/5 pl-8 h-80 float-right overflow-y-auto">
             <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -122,6 +123,113 @@
             </div>
         </div>
     </div>
+    <div class="container border-b-2 border-gray-800 mb-6 h-36">
+        <div class="w-1/4 float-left">
+            <h1 class="text-xl text-white font-semibold mb-2">
+                Add Location
+            </h1>
+            <h2 class="text-md text-gray-500 font-medium pb-6">
+                Add a location in which you want to track attendance.
+            </h2>
+        </div>
+        <div clas="w-3/5 pl-8 float-right">
+            <form action="{{ request.path }}" method="post">
+                <div class="flex justify-end">
+                    <div class="mx-2">
+                        <label for="location_name" class="text-white font-medium">Location Name</label><br>
+                        <input type="text" name="location_name" placeholder="school"
+                            class="w-[13rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
+                    </div>
+                    <div class="mx-2">
+                        <label for="lat" class="text-white font-medium">Latitude</label><br>
+                        <input type="text" name="lat" placeholder="39.14274983276902"
+                            class="w-[13rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
+                    </div>
+                    <div class="mx-2">
+                        <label for="long" class="text-white font-medium">Longitude</label><br>
+                        <input type="text" name="long" placeholder="-77.41981164888188"
+                            class="w-[13rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
+                    </div>
+                </div>
+                <button type="submit" id="location-add" name="location-add"
+                    class="mx-2 mt-3 float-right inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-amber-400 rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-amber-400">
+                    Add
+                    <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                            d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="container mb-6 h-96">
+        <div class="w-1/4 float-left">
+            <h1 class="text-xl text-white font-semibold mb-2">
+                View locations
+            </h1>
+            <h2 class="text-md text-gray-500 font-medium pb-6">
+                View and manage all locations added to FalconTrack
+            </h2>
+        </div>
+        <div class="w-3/5 pl-8 h-80 float-right overflow-y-auto">
+            <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="py-3 px-6 w-10">
+                                Location Name
+                            </th>
+                            <th scope="col" class="py-3 px-6 w-10">
+                                Latitude
+                            </th>
+                            <th scope="col" class="py-3 px-3 w-10">
+                                Longitude
+                            </th>
+                            <th scope="col" class="py-3 px-3 w-10">
+                                Last Edited On
+                            </th>
+                            <th scope="col" class="py-3 px-2 w-10">
+                                Edited By
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for location in locations %}
+                        <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
+                            <th scope="row"
+                                class="py-4 px-3 pr-1 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                <input class="bg-transparent w-[6rem] h-max border-none focus:border-gray-700"
+                                    type="text" name="name" value="{{ location.name }}" id="{{ location.id }}.name"
+                                    onChange="update_location({{ location.id }})" />
+                            </th>
+                            <td class="py-4 px-3">
+                                <input class="bg-transparent w-[5rem] h-max border-none focus:border-gray-700"
+                                    type="text" name="lat" value="{{ location.latitude }}"
+                                    id="{{ location.id }}.latitude" onChange="update_location({{ location.id }})" />
+                            </td>
+                            <td class="py-4 px-3">
+                                <input class="bg-transparent w-[5rem] h-max border-none focus:border-gray-700"
+                                    type="text" name="long" value="{{ location.longitude }}"
+                                    id="{{ location.id }}.longitude" onChange="update_location({{ location.id }})" />
+                            </td>
+                            <td class="py-4 px-3">
+                                {{ location.last_edited_on }}
+                            </td>
+                            <td class="py-4 px-3">
+                                {{ location.last_edited_by }}
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
 <script>
@@ -137,6 +245,26 @@
         $.ajax({
             type: "POST",
             url: "/process_student_change",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: 'json',
+            success: function (result) {
+
+            }
+        });
+    }
+
+    function update_location(id) {
+        var server_data = [
+            { "id": id },
+            { "name": document.getElementById(id + ".name").value },
+            { "lat": document.getElementById(id + ".latitude").value },
+            { "long": document.getElementById(id + ".longitude").value }
+        ];
+
+        $.ajax({
+            type: "POST",
+            url: "/process_location_change",
             data: JSON.stringify(server_data),
             contentType: "application/json",
             dataType: 'json',

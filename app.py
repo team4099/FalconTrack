@@ -10,6 +10,7 @@ from flask import (
 )
 from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.mysql import FLOAT
 from sqlalchemy import Enum
 import os
 from dotenv import load_dotenv
@@ -93,7 +94,6 @@ class QRcode(db.Model):
         expr_date: int,
         range_of_qrcode: Optional[int] = 300,
     ):
-        print(expr_date)
         cur_time = datetime.now()
         date_obj = datetime.strptime(str(expr_date), "%H")
         delta = timedelta(hours=date_obj.hour)
@@ -103,6 +103,24 @@ class QRcode(db.Model):
             self.expr_date = cur_time + delta
         self.range_of_qrcode = range_of_qrcode
         self.uses = 0
+
+
+class Location(db.Model):
+    id = db.Column("loc_id", db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    latitude = db.Column(FLOAT(precision=32, scale=10))
+    longitude = db.Column(FLOAT(precision=32, scale=10))
+    last_edited_by = db.Column(db.String(50))
+    last_edited_on = db.Column(db.DateTime(), nullable=True)
+    created_on = db.Column(db.DateTime(), nullable=True)
+
+    def __init__(self, name: str, latitude: float, longitude: float, created_by: str):
+        self.name = name
+        self.latitude = latitude
+        self.longitude = longitude
+        self.last_edited_by = created_by
+        self.created_on = datetime.now()
+        self.last_edited_on = datetime.now()
 
 
 def set_base_param():
@@ -303,6 +321,44 @@ def dashboard():
                     db.session.commit()
                     flash(f"{student_name} was successfully added")
                     flash_color = "text-green-500"
+            if "location-add" in request.form:
+                error_catch = False
+                if (
+                    not request.form["location_name"]
+                    or not request.form["lat"]
+                    or not request.form["long"]
+                ):
+                    flash("Please enter all location fields")
+                    flash_color = "text-red-500"
+                else:
+                    name = request.form["location_name"]
+                    try:
+                        latitude = float(request.form["lat"])
+                        longitude = float(request.form["long"])
+                    except ValueError:
+                        flash("Latitude/Longitude needs to be a number")
+                        flash_color = "text-red-500"
+                        error_catch = True
+
+                    if Location.query.filter_by(name=name).first() is not None and not (
+                        error_catch
+                    ):
+                        flash("Location already exists")
+                        flash_color = "text-red-500"
+                        error_catch = True
+                    else:
+                        if not (error_catch):
+                            db.session.flush()
+                            new_loc = Location(
+                                name, latitude, longitude, session["user"]
+                            )
+
+                            db.session.add(new_loc)
+                            db.session.commit()
+
+                            flash(f"{name} was successfully added as a location")
+                            flash_color = "text-green-500"
+
         if Students.query.filter_by(username=session["user"]).first().is_admin == True:
             return render_template(
                 "dashboard.html",
@@ -310,6 +366,7 @@ def dashboard():
                 flash_color=flash_color,
                 base=set_base_param(),
                 students=Students.query.all(),
+                locations=Location.query.all(),
             )
     return redirect(url_for("error"))
 
@@ -330,6 +387,25 @@ def process_student_change():
                 student_edit.is_admin = False
             else:
                 student_edit.is_admin = True
+
+            db.session.commit()
+
+            return jsonify({"action_code": "200"})
+    else:
+        return redirect(url_for("error"))
+
+
+@app.route("/process_location_change", methods=["POST"])
+def process_location_change():
+    if session["isLoggedIn"]:
+        if request.method == "POST":
+            db.session.flush()
+            location_data = request.get_json()
+
+            location_edit = Location.query.filter_by(id=location_data[0]["id"]).first()
+            location_edit.name = location_data[1]["name"]
+            location_edit.latitude = float(location_data[2]["lat"])
+            location_edit.longitude = float(location_data[3]["long"])
 
             db.session.commit()
 
