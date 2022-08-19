@@ -23,7 +23,7 @@
                 <select name="location" id="select"
                     class="w-[14rem] h-10 bg-gray-700 text-gray-300 rounded-lg px-2 mb-8 text-sm">
                     {% for location in locations %}
-                    <option value="{{ location }}">{{ location }}</option>
+                    <option value="{{ location.name }}">{{ location.name }}</option>
                     {% endfor %}
                 </select>
                 <a href="#">

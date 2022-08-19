@@ -96,6 +96,7 @@ class QRcode(db.Model):
         range_of_qrcode: Optional[int] = 300,
     ):
         cur_time = datetime.now()
+        cur_time = cur_time - datetime.timedelta(microseconds=cur_time.microsecond)
         date_obj = datetime.strptime(str(expr_date), "%H")
         delta = timedelta(hours=date_obj.hour)
 
@@ -120,8 +121,12 @@ class Location(db.Model):
         self.latitude = latitude
         self.longitude = longitude
         self.last_edited_by = created_by
-        self.created_on = datetime.now()
-        self.last_edited_on = datetime.now()
+        created_on = datetime.now()
+        self.created_on = created_on - timedelta(microseconds=created_on.microsecond)
+        last_edited_on = datetime.now()
+        self.last_edited_on = last_edited_on - timedelta(
+            microseconds=last_edited_on.microsecond
+        )
 
 
 def set_base_param():
@@ -175,7 +180,7 @@ def generate():
                 return render_template(
                     "generate.html",
                     title="Generate QR Code",
-                    locations=config["locations"],
+                    locations=Location.query.all(),
                     url="Failed to generate QRcode",
                     flash_color="text-red-500",
                     base=set_base_param(),
@@ -198,7 +203,7 @@ def generate():
                     return render_template(
                         "generate.html",
                         title="Generate QR Code",
-                        locations=config["locations"],
+                        locations=Location.query.all(),
                         url="Failed to generate QRcode",
                         flash_color="text-red-500",
                         base=set_base_param(),
@@ -214,7 +219,7 @@ def generate():
                 return render_template(
                     "generate.html",
                     title="Generate QR Code",
-                    locations=config["locations"],
+                    locations=Location.query.all(),
                     url=fields["encoded"],
                     flash_color="text-green-500",
                     base=set_base_param(),
@@ -225,7 +230,7 @@ def generate():
             return render_template(
                 "generate.html",
                 title="Generate QR Code",
-                locations=config["locations"],
+                locations=Location.query.all(),
                 base=set_base_param(),
             )
     else:
@@ -378,7 +383,6 @@ def process_student_change():
         if request.method == "POST":
             db.session.flush()
             student_data = request.get_json()
-            print(student_data)
 
             student_edit = Students.query.filter_by(id=student_data[0]["id"]).first()
             student_edit.username = student_data[1]["username"]
@@ -407,6 +411,10 @@ def process_location_change():
             location_edit.name = location_data[1]["name"]
             location_edit.latitude = float(location_data[2]["lat"])
             location_edit.longitude = float(location_data[3]["long"])
+            location_edit.last_edited_on = datetime.fromtimestamp(
+                int(location_data[4]["current_time"])
+            )
+            location_edit.last_edited_by = session["user"]
 
             db.session.commit()
 

@@ -239,7 +239,8 @@
             { "id": id },
             { "username": document.getElementById(id + ".username").value },
             { "school_id": document.getElementById(id + ".school_id").value },
-            { "is_admin": document.getElementById(id + ".is_admin").value }
+            { "is_admin": document.getElementById(id + ".is_admin").value },
+            { "current_time": new Date().getTime() }
         ];
 
         $.ajax({
@@ -255,11 +256,13 @@
     }
 
     function update_location(id) {
+        const date = new Date()
         var server_data = [
             { "id": id },
             { "name": document.getElementById(id + ".name").value },
             { "lat": document.getElementById(id + ".latitude").value },
-            { "long": document.getElementById(id + ".longitude").value }
+            { "long": document.getElementById(id + ".longitude").value },
+            { "current_time": date.getTime() / 1000 }
         ];
 
         $.ajax({
