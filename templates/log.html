@@ -2,31 +2,40 @@
 
 {% block content %}
 <div class="w-2/3 mx-auto mt-5 mb-6">
-    <button onclick="getLocation()">Try It</button>
-
-    <p id="demo"></p>
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
-        var x = document.getElementById("demo");
-
         function getLocation() {
+
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition);
-            } else {
-                x.innerHTML = "Geolocation is not supported by this browser.";
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    const windowURL = window.location.search
+                    const urlParams = new URLSearchParams(windowURL);
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/attendance",
+                        contentType: "application/json",
+                        data: JSON.stringify({ location: pos, id: urlParams.get("id"), loc: urlParams.get("loc") }),
+                        dataType: "json",
+                        success: function (response) {
+                            console.log(response);
+                        },
+                        error: function (err) {
+                            console.log(err);
+                        }
+                    });
+
+                });
             }
         }
 
-        function showPosition(position) {
-            x.innerHTML = "Latitude: " + position.coords.latitude +
-                "<br>Longitude: " + position.coords.longitude;
-        }
+        getLocation()
+
     </script>
-    {%- for category, message in get_flashed_messages(with_categories = true) %}
-    <div class="alert alert-danger p-6 {{ flash_color }}">
-        {{ message }}
-    </div>
-    {%- endfor %}
 
 </div>
 

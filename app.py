@@ -353,16 +353,33 @@ def page_not_found(e):
     )
 
 
-@app.route("/attendance")
+@app.route("/postmethod", methods=["POST"])
+def postmethod():
+    data = request.get_json()
+    print(data)
+    return jsonify(data)
+
+
+@app.route("/attendance", methods=["GET", "POST"])
 def log():
     if session["isLoggedIn"]:
-        flash_color = "text-white"
-        id = request.args.get("id")
-        location = request.args.get("loc")
-        print(id, location)
-        if id is None or location is None:
-            flash_color = "text-red-500"
-            flash("Error in processing location logging.")
+        if request.method == "GET":
+            return render_template(
+                "log.html", title="Attendance Logging", base=set_base_param()
+            )
+        elif request.method == "POST":
+            flash_color = "text-white"
+            data = request.get_json()
+            id = data["id"]
+            location = data["loc"]
+            if id is None or location is None:
+                flash_color = "text-red-500"
+                flash("Error in processing location logging.")
+            else:
+                flash_color = "text-green-500"
+                flash("Data successfully obtained.")
+                data = request.get_json()
+                print(data)
 
         return render_template(
             "index.html", title="Home", base=set_base_param(), flash_color=flash_color
