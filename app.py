@@ -466,7 +466,8 @@ def log():
 
 if __name__ == "__main__":
     db.create_all()
-    db.session.flush()
-    db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
-    db.session.commit()
+    if Students.query.filter(Students.username == config["rootuser"]).first() == None:
+        db.session.flush()
+        db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
+        db.session.commit()
     app.run(debug=True, host="0.0.0.0")
