@@ -2,6 +2,11 @@
 
 {% block content %}
 <div class="w-2/3 mx-auto mt-5 mb-6">
+    {%- for category, message in get_flashed_messages(with_categories = true) %}
+    <div class="alert alert-danger mt-2 {{ flash_color }}">
+        {{ message }}
+    </div>
+    {%- endfor %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
         function getLocation() {

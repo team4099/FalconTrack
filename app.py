@@ -27,10 +27,6 @@ with open("config.json", "r") as json_file:
 
 base_url = config["base_url"]
 
-location_list = config["locations"]
-location_dict = {loc: loc for loc in location_list}
-Locations = enum.Enum("Locations", location_dict)
-
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
 app.config["SECRET_KEY"] = "the random string"
@@ -47,7 +43,7 @@ class Students(db.Model):
     username = db.Column(db.String(20))
     school_id = db.Column(db.Integer)
     is_admin = db.Column(db.Boolean)
-    cur_location = db.Column(Enum(Locations), nullable=True)
+    cur_location = db.Column(db.String(50), nullable=True)
     last_logged_attendance_time = db.Column(db.DateTime(), nullable=True)
     hours_logged = db.Column(db.Integer)
 
@@ -75,7 +71,7 @@ class Students(db.Model):
         self.school_id = school_id
         self.is_admin = is_admin
         if cur_location:
-            self.cur_location = Locations(cur_location)
+            self.cur_location = cur_location
         else:
             self.cur_location = None
         self.last_logged_attendance_time = last_logged_attendance_time
@@ -84,7 +80,7 @@ class Students(db.Model):
 
 class QRcode(db.Model):
     id = db.Column("qrcode_id", db.Integer, primary_key=True)
-    location = db.Column(Enum(Locations))
+    location = db.Column(db.String(50))
     expr_date = db.Column(db.DateTime(), nullable=True)
     range_of_qrcode = db.Column(db.Integer)
     uses = db.Column(db.Integer)
@@ -96,11 +92,11 @@ class QRcode(db.Model):
         range_of_qrcode: Optional[int] = 300,
     ):
         cur_time = datetime.now()
-        cur_time = cur_time - datetime.timedelta(microseconds=cur_time.microsecond)
+        cur_time = cur_time - timedelta(microseconds=cur_time.microsecond)
         date_obj = datetime.strptime(str(expr_date), "%H")
         delta = timedelta(hours=date_obj.hour)
 
-        self.location = Locations(location)
+        self.location = location
         if expr_date != 0:
             self.expr_date = cur_time + delta
         self.range_of_qrcode = range_of_qrcode
@@ -127,6 +123,20 @@ class Location(db.Model):
         self.last_edited_on = last_edited_on - timedelta(
             microseconds=last_edited_on.microsecond
         )
+
+
+class AttendanceLog(db.Model):
+    id = db.Column("log_id", db.Integer, primary_key=True)
+    log_time = db.Column(db.DateTime())
+    location = db.Column(db.String(50))
+    attendee = db.Column(db.String(50))
+
+    def __init__(
+        self, name: str, location: str, log_time: Optional[datetime] = datetime.now()
+    ):
+        self.log_time = log_time
+        self.attendee = name
+        self.location = location
 
 
 def set_base_param():
@@ -239,7 +249,7 @@ def generate():
 
 @app.route("/current_students")
 def show_all():
-    return render_template("show_all.html", students=Students.query.all())
+    return render_template("show_all.html", students=AttendanceLog.query.all())
 
 
 @app.route("/new", methods=["GET", "POST"])
@@ -448,27 +458,33 @@ def postmethod():
 @app.route("/attendance", methods=["GET", "POST"])
 def log():
     if session["isLoggedIn"]:
+        flash_color = "text-white"
         if request.method == "GET":
             return render_template(
                 "log.html", title="Attendance Logging", base=set_base_param()
             )
         elif request.method == "POST":
-            flash_color = "text-white"
             data = request.get_json()
             id = data["id"]
             location = data["loc"]
+            print(data)
             if id is None or location is None:
                 flash_color = "text-red-500"
                 flash("Error in processing location logging.")
             else:
-                flash_color = "text-green-500"
-                flash("Data successfully obtained.")
-                data = request.get_json()
-                print(data)
+                qrcode = QRcode.query.filter_by(id=id, location=location).first()
+                if qrcode != None:
+                    qrcode.uses += 1
 
-        return render_template(
-            "index.html", title="Home", base=set_base_param(), flash_color=flash_color
-        )
+                db.session.flush()
+                log = AttendanceLog(session["user"], location)
+                db.session.add(log)
+
+                db.session.commit()
+
+                flash_color = "text-green-500"
+                flash("Attendance logged.")
+            return redirect(url_for("log"))
     return redirect(url_for("error"))
 
 
