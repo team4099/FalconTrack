@@ -36,6 +36,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
 app.config["SECRET_KEY"] = "the random string"
 app.permanent_session_lifetime = timedelta(days=365)
 
+
 QRcode(app)
 
 db = SQLAlchemy(app)
@@ -465,4 +466,7 @@ def log():
 
 if __name__ == "__main__":
     db.create_all()
+    db.session.flush()
+    db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
+    db.session.commit()
     app.run(debug=True, host="0.0.0.0")
