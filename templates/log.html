@@ -2,46 +2,65 @@
 
 {% block content %}
 <div class="w-2/3 mx-auto mt-5 mb-6">
-    {%- for category, message in get_flashed_messages(with_categories = true) %}
-    <div class="alert alert-danger mt-2 {{ flash_color }}">
-        {{ message }}
+    <h1 class="text-4xl text-white font-semibold ">Attendance Logging</h1>
+    <p id="check_in_out_message" class="text-green-500 pr-4 mt-4"></p>
+    <div class="grid items-center justify-center h-96">
+        <button type="button" onclick="getLocation()"
+            class="focus:outline-none text-white w-64 h-16 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 font-medium rounded-lg text-2xl px-5 py-2.5 mr-2 mb-2">{{
+            checked_in }}</button>
     </div>
-    {%- endfor %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script>
-        function getLocation() {
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    pos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    const windowURL = window.location.search
-                    const urlParams = new URLSearchParams(windowURL);
-
-                    $.ajax({
-                        type: "POST",
-                        url: "/add_attendance",
-                        contentType: "application/json",
-                        data: JSON.stringify({ location: pos, id: urlParams.get("id"), loc: urlParams.get("loc") }),
-                        dataType: "json",
-                        success: function (response) {
-                            console.log(response);
-                        },
-                        error: function (err) {
-                            console.log(err);
-                        }
-                    });
-
-                });
-            }
-        }
-
-        getLocation()
-
-    </script>
-
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script>
+    function getLocation() {
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                const windowURL = window.location.search
+                const urlParams = new URLSearchParams(windowURL);
+
+                $.ajax({
+                    type: "POST",
+                    url: "/add_attendance",
+                    contentType: "application/json",
+                    data: JSON.stringify({ location: pos, id: urlParams.get("id"), loc: urlParams.get("loc") }),
+                    dataType: "json",
+                    success: function (response) {
+                        code = response.action_code
+                        if (code == 200) {
+                            document.getElementById("check_in_out_message").innerText = "Succesfully logged attendance entry."
+                        } else {
+                            document.getElementById("check_in_out_message").className = "text-red-500 pr-4 mt-4"
+                            if (code == 201) {
+                                document.getElementById("check_in_out_message").innerText = "Corresponding QRcode not found."
+                            } else if (code == 202) {
+                                document.getElementById("check_in_out_message").innerText = "Student information not found."
+                            } else if (code == 203) {
+                                document.getElementById("check_in_out_message").innerText = "Location not found."
+                            } else if (code == 204) {
+                                document.getElementById("check_in_out_message").innerText = "Too far away from the location's specified coordinates."
+                            } else if (code == 205) {
+                                document.getElementById("check_in_out_message").innerText = "QRcode is expired."
+                            }
+                        }
+
+                        console.log(response.action_code)
+                    },
+                    error: function (err) {
+                        document.getElementById("check_in_out_message").innerText = "There was an error. Please try again later."
+                        console.log(err)
+                    }
+                });
+
+            });
+        } else {
+            document.getElementById("check_in_out_message").innerText = "Please enable your location for this website."
+        }
+    }
+</script>
 
 {% endblock content %}

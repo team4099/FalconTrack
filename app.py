@@ -18,7 +18,7 @@ import json
 import enum
 from typing import List, Set, Dict, Tuple, Optional
 from datetime import datetime, timedelta
-import json
+import math
 
 load_dotenv()
 
@@ -46,6 +46,7 @@ class Students(db.Model):
     cur_location = db.Column(db.String(50), nullable=True)
     last_logged_attendance_time = db.Column(db.DateTime(), nullable=True)
     hours_logged = db.Column(db.Integer)
+    checked_in = db.Column(db.Boolean)
 
     def __init__(
         self,
@@ -55,6 +56,7 @@ class Students(db.Model):
         cur_location: Optional[str] = None,
         last_logged_attendance_time: Optional[datetime] = datetime.now(),
         hours_logged: Optional[int] = 0,
+        checked_in: Optional[bool] = False,
     ):
         """
         Initialize a student object with their username, current_location (None on initialization), the last time their attendance was logged at any location (none on init),
@@ -76,6 +78,7 @@ class Students(db.Model):
             self.cur_location = None
         self.last_logged_attendance_time = last_logged_attendance_time
         self.hours_logged = hours_logged
+        self.checked_in = checked_in
 
 
 class QRcode(db.Model):
@@ -452,37 +455,90 @@ def page_not_found(e):
 def process_attendance():
     if session["isLoggedIn"]:
         flash_color = "text-white"
+        student = Students.query.filter_by(username=session["user"]).first()
+        if student != None:
+            check_in_button_text = "Check Out" if student.checked_in else "Check In"
         data = request.get_json()
         id = data["id"]
-        location = data["loc"]
-        if id is None or location is None:
-            flash_color = "text-red-500"
-            flash("Error in processing location logging.")
-        else:
-            qrcode = QRcode.query.filter_by(id=id, location=location).first()
+        location_name = data["loc"]
+        coords = data["location"]
+        if id is not None and location_name is not None:
+            qrcode = QRcode.query.filter_by(id=id, location=location_name).first()
             if qrcode != None:
                 qrcode.uses += 1
+            else:
+                return jsonify({"action_code": "201"})
 
-            db.session.flush()
-            log = AttendanceLog(session["user"], location)
-            db.session.add(log)
+            if qrcode.expr_date != None and datetime.now() > qrcode.expr_date:
+                return jsonify({"action_code": "205"})
 
-            db.session.commit()
+            student = Students.query.filter_by(username=session["user"]).first()
+            if student != None:
+                student.checked_in = not (student.checked_in)
+            else:
+                return jsonify({"action_code": "202"})
 
-            flash_color = "text-green-500"
-        return jsonify({"action_code": "200"})
-    else:
-        return redirect(url_for("error"))
+            location = Location.query.filter_by(name=location_name).first()
+            if location != None:
+                lat_1, lng_1, lat_2, lng_2 = map(
+                    math.radians,
+                    [
+                        location.latitude,
+                        location.longitude,
+                        coords["lat"],
+                        coords["lng"],
+                    ],
+                )
+                dist = get_distance(lat_1, lng_1, lat_2, lng_2)
+            else:
+                return jsonify({"action_code": "203"})
+
+            if dist <= qrcode.range_of_qrcode:
+                db.session.flush()
+                log = AttendanceLog(session["user"], location_name)
+                db.session.add(log)
+
+                db.session.commit()
+            else:
+                return jsonify({"action_code": "204"})
+
+            return jsonify({"action_code": "200"})
+    return redirect(url_for("error"))
 
 
 @app.route("/attendance", methods=["GET", "POST"])
 def log():
     if session["isLoggedIn"]:
         if request.method == "GET":
-            return render_template(
-                "log.html", title="Attendance Logging", base=set_base_param()
-            )
+            id = request.args.get("id")
+            location = request.args.get("loc")
+            if id is not None and location is not None:
+                student = Students.query.filter_by(username=session["user"]).first()
+                if student != None:
+                    check_in_button_text = (
+                        "Check Out" if student.checked_in else "Check In"
+                    )
+                    return render_template(
+                        "log.html",
+                        title="Attendance Logging",
+                        base=set_base_param(),
+                        checked_in=check_in_button_text,
+                    )
     return redirect(url_for("error"))
+
+
+def get_distance(lat_1, lng_1, lat_2, lng_2):
+    d_lat = lat_2 - lat_1
+    d_lng = lng_2 - lng_1
+
+    temp = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2
+    )
+
+    return (
+        6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp))) * 3280.84
+    )  # converting kilometer output into feet
 
 
 if __name__ == "__main__":
