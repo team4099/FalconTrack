@@ -22,7 +22,7 @@
 
                     $.ajax({
                         type: "POST",
-                        url: "/attendance",
+                        url: "/add_attendance",
                         contentType: "application/json",
                         data: JSON.stringify({ location: pos, id: urlParams.get("id"), loc: urlParams.get("loc") }),
                         dataType: "json",
