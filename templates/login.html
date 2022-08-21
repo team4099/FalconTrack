@@ -7,37 +7,120 @@
         <h1 class="text-center text-3xl text-white font-semibold border-t-2 border-gray-600 mt-2 pt-4">
             Login
         </h1>
-        <form action="{{ request.path }}" method="post">
-            <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
-                Name
-            </h1>
-            <input name="username" id="username" placeholder="saraansh"
-                class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
-            <br>
+        <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
+            Name
+        </h1>
+        <input name="username" id="username" placeholder="saraansh"
+            class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
+        <br>
 
-            <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
-                Student ID
-            </h1>
-            <input name="password" id="password" placeholder="451466" type="password"
-                class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
-            <br>
+        <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
+            Student ID
+        </h1>
+        <input name="password" id="password" placeholder="451466" type="password"
+            class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
+        <br>
 
-            <button type="submit"
-                class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-amber-400 rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-amber-400">
-                Log In
-                <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd"
-                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                        clip-rule="evenodd"></path>
-                </svg>
-            </button>
-            {%- for category, message in get_flashed_messages(with_categories = true) %}
-            <div class="alert alert-danger p-6 {{ flash_color }}">
-                {{ message }}
-            </div>
-            {%- endfor %}
-        </form>
+        <button type=""
+            onclick="submit_login()"
+            class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-amber-400 rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-amber-400">
+            Log In
+            <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                    d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                    clip-rule="evenodd"></path>
+            </svg>
+        </button>
+        <div class="alert alert-danger p-6 text-red-400" id="errorMessage">
+            
+        </div>
     </div>
+  
+    <!-- Main modal -->
+    <div id="verificationModal" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full justify-center items-center flex">
+        <div class="relative p-4 w-full max-w-2xl h-full md:h-auto">
+            <!-- Modal content -->
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <!-- Modal header -->
+                <div class="flex justify-between items-start p-4 rounded-t border-b dark:border-gray-600">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Enter verification code
+                    </h3>
+                    <button id="closeVerification" type="button" onclick="document.getElementById('verificationModal').classList.add('hidden')" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-6 space-y-6">
+                    <input type="text" id="code" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="123456" required>
+                </div>
+
+                <div class="flex items-center p-6 space-x-2 rounded-b border-t border-gray-200 dark:border-gray-600">
+                    <button onclick="submit_verification()" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+  
 </div>
+
+<script>
+    function submit_login() {
+        var server_data = [
+            { "action": "init"},
+            { "username": document.getElementById("username").value },
+            { "password": document.getElementById("password").value }
+        ];
+
+        $.ajax({
+            type: "POST",
+            url: "/process_login",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: 'json',
+            success: function (result) {
+                if (result["action"] == "verify"){
+                    document.getElementById("errorMessage").innerText = ""
+                    document.getElementById("verificationModal").classList.remove("hidden")
+                }
+                else if (result["action"] == "logged"){
+                    location.replace("/home")
+                }
+                else {
+                    document.getElementById("errorMessage").innerText = result["action"]
+                }
+            }
+        });
+    }
+
+    function submit_verification(){
+        document.getElementById("verificationModal").classList.add("hidden")
+
+        var server_data = [
+            { "action": "verification"},
+            { "code": document.getElementById("code").value },
+            { "username": document.getElementById("username").value }
+        ];
+
+        $.ajax({
+            type: "POST",
+            url: "/process_login",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: 'json',
+            success: function (result) {
+                if (result["action"] == "logged"){
+                    console.log("redirect")
+                    location.replace("/")
+                }
+                else {
+                    document.getElementById("errorMessage").innerText = result["action"]
+                }
+            }
+        });
+    }
+
+</script>
 {% endblock content %}
