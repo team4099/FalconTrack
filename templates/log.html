@@ -5,7 +5,7 @@
     <h1 class="text-4xl text-white font-semibold ">Attendance Logging</h1>
     <p id="check_in_out_message" class="text-green-500 pr-4 mt-4"></p>
     <div class="grid items-center justify-center h-96">
-        <button type="button" onclick="getLocation()"
+        <button type="button" id="attendance" onclick="getLocation()"
             class="focus:outline-none text-white w-64 h-16 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 font-medium rounded-lg text-2xl px-5 py-2.5 mr-2 mb-2">{{
             checked_in }}</button>
     </div>
@@ -32,7 +32,14 @@
                     success: function (response) {
                         code = response.action_code
                         if (code == 200) {
-                            document.getElementById("check_in_out_message").innerText = "Succesfully logged attendance entry."
+                            var attendance_state = document.getElementById("attendance").innerText
+                            if (attendance_state == "Check In") {
+                                document.getElementById("check_in_out_message").innerText = "Succesfully checked in."
+                                document.getElementById("attendance").innerText = "Check Out"
+                            } else {
+                                document.getElementById("check_in_out_message").innerText = "Succesfully checked out."
+                                document.getElementById("attendance").innerText = "Check In"
+                            }
                         } else {
                             document.getElementById("check_in_out_message").className = "text-red-500 pr-4 mt-4"
                             if (code == 201) {
@@ -47,8 +54,6 @@
                                 document.getElementById("check_in_out_message").innerText = "QRcode is expired."
                             }
                         }
-
-                        console.log(response.action_code)
                     },
                     error: function (err) {
                         document.getElementById("check_in_out_message").innerText = "There was an error. Please try again later."

@@ -402,6 +402,7 @@ def dashboard():
                 base=set_base_param(),
                 students=Students.query.all(),
                 locations=Location.query.all(),
+                active_students=Students.query.filter_by(checked_in=True),
             )
     return redirect(url_for("error"))
 
@@ -544,6 +545,25 @@ def log():
                         base=set_base_param(),
                         checked_in=check_in_button_text,
                     )
+    return redirect(url_for("error"))
+
+
+@app.route("/checkout_student", methods=["POST"])
+def checkout():
+    if session["isLoggedIn"]:
+        if session["is_admin"]:
+            db.session.flush()
+
+            student_data = request.get_json()
+            student = Students.query.filter_by(id=student_data[0]["id"]).first()
+
+            student.checked_in = False
+            student.cur_location = None
+            student.last_logged_attendance_time = datetime.now()
+
+            db.session.commit()
+
+            return jsonify({"action_code": "200"})
     return redirect(url_for("error"))
 
 

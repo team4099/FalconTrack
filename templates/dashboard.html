@@ -180,7 +180,7 @@
             </form>
         </div>
     </div>
-    <div class="container mb-6 h-96">
+    <div class="border-b-2 border-gray-800 mb-6 h-96">
         <div class="w-1/4 float-left">
             <h1 class="text-xl text-white font-semibold mb-2">
                 View locations
@@ -247,6 +247,62 @@
                                         stroke-linejoin="round">
                                         <line x1="18" y1="6" x2="6" y2="18"></line>
                                         <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="container mb-6 h-96">
+        <div class="w-1/4 float-left">
+            <h1 class="text-xl text-white font-semibold mb-2">
+                Manage activity
+            </h1>
+            <h2 class="text-md text-gray-500 font-medium pb-6">
+                View all checked in students and manage their statuses.
+            </h2>
+        </div>
+        <div class="w-3/5 pl-8 h-80 float-right overflow-y-auto">
+            <div class="overflow-x-auto relative shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="py-3 px-6 w-10">
+                                Student Name
+                            </th>
+                            <th scope="col" class="py-3 px-6 w-10">
+                                Location
+                            </th>
+                            <th scope="col" class="py-3 px-3 w-10">
+                                Time Checked In
+                            </th>
+                            <th scope="col" class="py-3 px-3 w-7">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in active_students %}
+                        <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
+                            <td class="py-4 px-3 w-[5rem] h-max border-none">{{ student.username }}
+                            </td>
+                            <td class="py-4 px-3 w-[5rem] h-max border-none">{{ student.cur_location }}
+                            </td>
+                            <td class="py-4 px-3 w-[5rem] h-max border-none">
+                                {{ student.last_logged_attendance_time }}
+                            </td>
+                            <td class="py-4 px-3">
+                                <button type="submit" id="checkout" name="checkout"
+                                    onclick="confirm_student_checkout({{ student.id }}, '{{ student.username}}')"
+                                    class="mx-0 mt-0 py-2 px-3 text-sm bg-none hover:bg-none focus:ring-4 font-medium rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3" />
                                     </svg>
                                 </button>
                             </td>
@@ -356,6 +412,21 @@
         });
     }
 
+    function confirm_student_checkout(id, name) {
+        privacyModal.show();
+        document.getElementById("deletion").innerText = "Please confirm that you want to checkout " + name + "."
+        const closeModalEl = document.getElementById('close-modal');
+        closeModalEl.addEventListener('click', function () {
+            privacyModal.hide();
+        });
+
+        const acceptPrivacyEl = document.getElementById('confirm-button');
+        acceptPrivacyEl.addEventListener('click', function () {
+            privacyModal.hide();
+            checkout_student(id)
+        });
+    }
+
     function delete_location(id) {
         var server_data = [
             { "id": id },
@@ -394,6 +465,24 @@
 
 
     }
+
+    function checkout_student(id) {
+        var server_data = [
+            { "id": id },
+        ];
+
+        $.ajax({
+            type: "POST",
+            url: "/checkout_student",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: 'json',
+            success: function (result) {
+                window.location.href = window.location.pathname + window.location.search + window.location.hash;
+            }
+        })
+    }
+
     const modalEl = document.getElementById('info-popup');
     const privacyModal = new Modal(modalEl, {
         placement: 'center'
