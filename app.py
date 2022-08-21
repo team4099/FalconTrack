@@ -332,7 +332,7 @@ def login():
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     if session["isLoggedIn"]:
-        flash_color = "text-white"
+        flash_color = "text-green-500"
         if request.method == "POST":
             if "student-add" in request.form:
                 if not request.form["username"] or not request.form["studentid"]:
@@ -354,8 +354,11 @@ def dashboard():
 
                     db.session.add(student)
                     db.session.commit()
+
                     flash(f"{student_name} was successfully added")
                     flash_color = "text-green-500"
+
+                    return redirect(url_for("dashboard"))
             if "location-add" in request.form:
                 error_catch = False
                 if (
@@ -393,6 +396,7 @@ def dashboard():
 
                             flash(f"{name} was successfully added as a location")
                             flash_color = "text-green-500"
+                            return redirect(url_for("dashboard"))
 
         if Students.query.filter_by(username=session["user"]).first().is_admin == True:
             return render_template(
@@ -407,25 +411,46 @@ def dashboard():
     return redirect(url_for("error"))
 
 
-@app.route("/process_student_change", methods=["POST", "GET"])
-def process_student_change():
+@app.route("/add_student", methods=["POST"])
+def add_student():
     if session["isLoggedIn"]:
-        if request.method == "POST":
+        if session["is_admin"]:
             db.session.flush()
             student_data = request.get_json()
 
-            student_edit = Students.query.filter_by(id=student_data[0]["id"]).first()
-            student_edit.username = student_data[1]["username"]
-            student_edit.school_id = student_data[2]["school_id"]
+            student = Students(
+                username=student_data[0]["username"],
+                school_id=student_data[1]["school_id"],
+                is_admin=(student_data[2]["type"] != "student"),
+            )
 
-            if student_data[3]["is_admin"] == "student":
-                student_edit.is_admin = False
-            else:
-                student_edit.is_admin = True
+            db.session.add(student)
 
             db.session.commit()
 
-            return jsonify({"action_code": "200"})
+
+@app.route("/process_student_change", methods=["POST", "GET"])
+def process_student_change():
+    if session["isLoggedIn"]:
+        if session["is_admin"]:
+            if request.method == "POST":
+                db.session.flush()
+                student_data = request.get_json()
+
+                student_edit = Students.query.filter_by(
+                    id=student_data[0]["id"]
+                ).first()
+                student_edit.username = student_data[1]["username"]
+                student_edit.school_id = student_data[2]["school_id"]
+
+                if student_data[3]["is_admin"] == "student":
+                    student_edit.is_admin = False
+                else:
+                    student_edit.is_admin = True
+
+                db.session.commit()
+
+                return jsonify({"action_code": "200"})
     else:
         return redirect(url_for("error"))
 
