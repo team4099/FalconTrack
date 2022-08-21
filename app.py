@@ -547,6 +547,40 @@ def log():
     return redirect(url_for("error"))
 
 
+@app.route("/delete_student", methods=["POST"])
+def delete_student():
+    if session["isLoggedIn"]:
+        if request.method == "POST":
+            db.session.flush()
+            student_data = request.get_json()
+
+            student = Students.query.filter_by(id=student_data[0]["id"]).first()
+            db.session.delete(student)
+
+            db.session.commit()
+
+            return jsonify({"action_code": "200"})
+    else:
+        return redirect(url_for("error"))
+
+
+@app.route("/delete_location", methods=["POST"])
+def delete_location():
+    if session["isLoggedIn"]:
+        if request.method == "POST":
+            db.session.flush()
+            location_data = request.get_json()
+
+            location = Location.query.filter_by(id=location_data[0]["id"]).first()
+            db.session.delete(location)
+
+            db.session.commit()
+
+            return jsonify({"action_code": "200"})
+    else:
+        return redirect(url_for("error"))
+
+
 def get_distance(lat_1, lng_1, lat_2, lng_2):
     d_lat = lat_2 - lat_1
     d_lng = lng_2 - lng_1
