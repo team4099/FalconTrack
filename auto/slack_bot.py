@@ -18,7 +18,7 @@ class SlackWrapper:
                         "my name is FalconTrack, and i am the fastest bot alive."
                         " i recently discovered that a new person was trying to sign"
                         " into an account with permissions on another level."
-                        " is this you? pls enter the 6 digit code below into FalconTrack. send *@pranav* a message if you see this"
+                        " is this you? pls enter the 6 digit code below into FalconTrack."
                     ),
                 }
             },
