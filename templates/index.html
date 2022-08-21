@@ -3,18 +3,25 @@
 {% block content %}
 <div class="w-2/3 mx-auto mt-5 mb-6">
     <h1 class="text-4xl text-white font-semibold ">
-        {% if base["isLoggedIn"] %}
-        {{ "hello, " + base["name"] }}
-        {% else %}
-        Home
-        {% endif %}
-    </h1>
-    {%- for category, message in get_flashed_messages(with_categories = true) %}
-    <div class="alert alert-danger p-6 {{ flash_color }}">
-        {{ message }}
-    </div>
-    {%- endfor %}
+        <h1 class="text-4xl text-white font-semibold ">Who is where?</h1>
+        <h2 class="text-lg text-gray-500 font-medium pb-6 border-b-2 border-gray-800 mb-6 mt-4">Use this page to see the
+            people
+            (if any) at all your build spaces.</h2>
 
+        {% for location in locations %}
+        <tr>
+            <td>{{ location.name }}</td>
+            {% for student in active_students %}
+        <tr>
+            {% if student.cur_location == location.name %}
+            {{ student.username }}
+            {% else %}
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tr>
+        {% endfor %}
+    </h1>
 </div>
 
 {% endblock content %}

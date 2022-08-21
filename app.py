@@ -174,10 +174,26 @@ def set_base_param():
 
 @app.route("/")
 def homepage():
-
-    return render_template(
-        "index.html", title="Home", base=set_base_param(), flash_color="text-white"
-    )
+    if session["isLoggedIn"]:
+        students = Students.query.all()
+        locations = set()
+        active_students = set()
+        for student in students:
+            if student.checked_in:
+                active_students.add(student)
+                locations.add(
+                    Location.query.filter_by(name=student.cur_location).first()
+                )
+        return render_template(
+            "index.html",
+            title="Home",
+            base=set_base_param(),
+            flash_color="text-white",
+            locations=locations,
+            active_students=active_students,
+        )
+    else:
+        return redirect(url_for("login"))
 
 
 @app.route("/generate", methods=["GET", "POST"])
@@ -480,6 +496,10 @@ def process_attendance():
 
             location = Location.query.filter_by(name=location_name).first()
             if location != None:
+                if student.checked_in:
+                    student.cur_location = location_name
+                else:
+                    student.cur_location = None
                 lat_1, lng_1, lat_2, lng_2 = map(
                     math.radians,
                     [
