@@ -516,7 +516,7 @@ def process_location_change():
 @app.route("/error")
 def error():
     return render_template(
-        "access_denied.html", title="Access Denied", base=set_base_param()
+        "403.html", title="403 - Access Denied", base=set_base_param()
     )
 
 
@@ -527,6 +527,12 @@ def page_not_found(e):
         "404.html", title="404 - Page Not Found", base=set_base_param()
     )
 
+@app.errorhandler(500)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template(
+        "500.html", title="500 - Internal Server Error", base=set_base_param()
+    )
 
 @app.route("/add_attendance", methods=["POST"])
 def process_attendance():
