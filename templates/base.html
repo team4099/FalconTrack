@@ -6,6 +6,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="-1" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.2/dist/flowbite.min.css" />
     <script src="{{url_for('static', filename='/js/qrcode.min.js')}}"></script>
@@ -44,12 +48,13 @@
             <div class="hidden w-full md:block md:w-auto" id="navbar-default">
                 <ul
                     class="flex flex-col p-4 mt-4 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:text-md md:font-medium md:border-0">
+
+                    {% if base["isLoggedIn"] %}
                     <li>
                         <a href="/"
                             class="mt-2 block py-2 pr-4 pl-3 text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#efae04] md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-md"
                             aria-current="page"><span class="">Home</span></a>
                     </li>
-                    {% if base["isLoggedIn"] %}
                     <li>
                         <a href="/generate"
                             class="mt-2 block py-2 pr-4 pl-3 text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#efae04] md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-md">Generate

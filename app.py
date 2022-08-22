@@ -179,10 +179,26 @@ def set_base_param():
 
 @app.route("/")
 def homepage():
-
-    return render_template(
-        "index.html", title="Home", base=set_base_param(), flash_color="text-white"
-    )
+    if session["isLoggedIn"]:
+        students = Students.query.all()
+        locations = set()
+        active_students = set()
+        for student in students:
+            if student.checked_in:
+                active_students.add(student)
+                locations.add(
+                    Location.query.filter_by(name=student.cur_location).first()
+                )
+        return render_template(
+            "index.html",
+            title="Home",
+            base=set_base_param(),
+            flash_color="text-white",
+            locations=locations,
+            active_students=active_students,
+        )
+    else:
+        return redirect(url_for("login"))
 
 
 @app.route("/generate", methods=["GET", "POST"])
@@ -342,7 +358,7 @@ def process_login():
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
     if session["isLoggedIn"]:
-        flash_color = "text-white"
+        flash_color = "text-green-500"
         if request.method == "POST":
             if "student-add" in request.form:
                 if not request.form["username"] or not request.form["studentid"]:
@@ -364,8 +380,11 @@ def dashboard():
 
                     db.session.add(student)
                     db.session.commit()
+
                     flash(f"{student_name} was successfully added")
                     flash_color = "text-green-500"
+
+                    return redirect(url_for("dashboard"))
             if "location-add" in request.form:
                 error_catch = False
                 if (
@@ -403,6 +422,7 @@ def dashboard():
 
                             flash(f"{name} was successfully added as a location")
                             flash_color = "text-green-500"
+                            return redirect(url_for("dashboard"))
 
         if Students.query.filter_by(username=session["user"]).first().is_admin == True:
             return render_template(
@@ -412,29 +432,51 @@ def dashboard():
                 base=set_base_param(),
                 students=Students.query.all(),
                 locations=Location.query.all(),
+                active_students=Students.query.filter_by(checked_in=True),
             )
     return redirect(url_for("error"))
+
+
+@app.route("/add_student", methods=["POST"])
+def add_student():
+    if session["isLoggedIn"]:
+        if session["is_admin"]:
+            db.session.flush()
+            student_data = request.get_json()
+
+            student = Students(
+                username=student_data[0]["username"],
+                school_id=student_data[1]["school_id"],
+                is_admin=(student_data[2]["type"] != "student"),
+            )
+
+            db.session.add(student)
+
+            db.session.commit()
 
 
 @app.route("/process_student_change", methods=["POST", "GET"])
 def process_student_change():
     if session["isLoggedIn"]:
-        if request.method == "POST":
-            db.session.flush()
-            student_data = request.get_json()
+        if session["is_admin"]:
+            if request.method == "POST":
+                db.session.flush()
+                student_data = request.get_json()
 
-            student_edit = Students.query.filter_by(id=student_data[0]["id"]).first()
-            student_edit.username = student_data[1]["username"]
-            student_edit.school_id = student_data[2]["school_id"]
+                student_edit = Students.query.filter_by(
+                    id=student_data[0]["id"]
+                ).first()
+                student_edit.username = student_data[1]["username"]
+                student_edit.school_id = student_data[2]["school_id"]
 
-            if student_data[3]["is_admin"] == "student":
-                student_edit.is_admin = False
-            else:
-                student_edit.is_admin = True
+                if student_data[3]["is_admin"] == "student":
+                    student_edit.is_admin = False
+                else:
+                    student_edit.is_admin = True
 
-            db.session.commit()
+                db.session.commit()
 
-            return jsonify({"action_code": "200"})
+                return jsonify({"action_code": "200"})
     else:
         return redirect(url_for("error"))
 
@@ -506,6 +548,10 @@ def process_attendance():
 
             location = Location.query.filter_by(name=location_name).first()
             if location != None:
+                if student.checked_in:
+                    student.cur_location = location_name
+                else:
+                    student.cur_location = None
                 lat_1, lng_1, lat_2, lng_2 = map(
                     math.radians,
                     [
@@ -551,6 +597,59 @@ def log():
                         checked_in=check_in_button_text,
                     )
     return redirect(url_for("error"))
+
+
+@app.route("/checkout_student", methods=["POST"])
+def checkout():
+    if session["isLoggedIn"]:
+        if session["is_admin"]:
+            db.session.flush()
+
+            student_data = request.get_json()
+            student = Students.query.filter_by(id=student_data[0]["id"]).first()
+
+            student.checked_in = False
+            student.cur_location = None
+            student.last_logged_attendance_time = datetime.now()
+
+            db.session.commit()
+
+            return jsonify({"action_code": "200"})
+    return redirect(url_for("error"))
+
+
+@app.route("/delete_student", methods=["POST"])
+def delete_student():
+    if session["isLoggedIn"]:
+        if request.method == "POST":
+            db.session.flush()
+            student_data = request.get_json()
+
+            student = Students.query.filter_by(id=student_data[0]["id"]).first()
+            db.session.delete(student)
+
+            db.session.commit()
+
+            return jsonify({"action_code": "200"})
+    else:
+        return redirect(url_for("error"))
+
+
+@app.route("/delete_location", methods=["POST"])
+def delete_location():
+    if session["isLoggedIn"]:
+        if request.method == "POST":
+            db.session.flush()
+            location_data = request.get_json()
+
+            location = Location.query.filter_by(id=location_data[0]["id"]).first()
+            db.session.delete(location)
+
+            db.session.commit()
+
+            return jsonify({"action_code": "200"})
+    else:
+        return redirect(url_for("error"))
 
 
 def get_distance(lat_1, lng_1, lat_2, lng_2):
