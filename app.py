@@ -198,7 +198,7 @@ def homepage():
             active_students=active_students,
         )
     else:
-        return redirect(url_for("login"))
+        return render_template("login.html", title="Login", base=set_base_param())
 
 
 @app.route("/generate", methods=["GET", "POST"])
