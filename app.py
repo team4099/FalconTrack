@@ -330,7 +330,6 @@ def process_login():
                         return jsonify({"action": "logged"})
 
                     else:
-                        print(student.username)
                         session["user"] = student.username
                         session["verification_number"] = random.randrange(
                             100000, 999999
@@ -347,12 +346,10 @@ def process_login():
                 return jsonify({"action": "Incorrect username or password"})
 
     elif login_info[0]["action"] == "verification":
-        print(login_info[1]["code"], str(session["verification_number"]))
         name = login_info[2]["username"]
         student = Students.query.filter(Students.username.contains(name)).first()
 
         if login_info[1]["code"] == str(session["verification_number"]):
-            print("verified")
             session["user"] = student.username
             session["isLoggedIn"] = True
             session["is_admin"] = student.is_admin
@@ -572,6 +569,7 @@ def process_attendance():
                 return jsonify({"action_code": "203"})
 
             if dist <= qrcode.range_of_qrcode:
+                student.last_logged_attendance_time = datetime.now()
                 db.session.flush()
                 log = AttendanceLog(session["user"], location_name)
                 db.session.add(log)
@@ -616,7 +614,9 @@ def checkout():
 
             student.checked_in = False
             student.cur_location = None
-            student.last_logged_attendance_time = datetime.now()
+            student.last_logged_attendance_time = datetime.fromtimestamp(
+                int(student_data[1]["time"])
+            )
 
             db.session.commit()
 

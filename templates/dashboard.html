@@ -2,6 +2,7 @@
 
 {% block content %}
 
+<script src="https://unpkg.com/flowbite@1.5.2/dist/datepicker.js"></script>
 <div class="w-2/3 mx-auto mt-5">
     <h1 class="text-4xl text-white font-semibold mb-2">
         Dashboard
@@ -320,15 +321,38 @@
             <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 md:p-8">
                 <div class="mb-4 text-sm font-light text-gray-500 dark:text-gray-400">
                     <h3 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">Are you sure?</h3>
+                    <p id="error" class="text-red-500">
+                    </p>
                     <p id="deletion">
                     </p>
                 </div>
                 <div class="justify-between items-center pt-0 space-y-4 sm:flex sm:space-y-0">
-                    <div class="items-center space-y-4 sm:space-x-4 sm:flex sm:space-y-0">
+                    <div class="relative">
+                        <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
+                            <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor"
+                                viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd"
+                                    d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+
+                    </div>
+                    <input datepicker type="text" id="date"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        placeholder="Select date">
+                </div>
+                <div class="justify-between items-center pt-0 space-y-4 sm:flex sm:space-y-0">
+                    <div class="mt-2 space-y-6">
+                        <input type="text" id="time"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            placeholder="4:00 PM" required>
+                    </div>
+                    <div class="items-center space-y-4 sm:space-x-4 sm:flex sm:space-y-2">
                         <button id="close-modal" type="button"
-                            class="py-2 px-4 w-full text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 sm:w-auto hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancel</button>
+                            class="mt-2 py-2 px-4 w-full text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 sm:w-auto hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancel</button>
                         <button id="confirm-button" type="button"
-                            class="py-2 px-4 w-full text-sm font-medium text-center text-white rounded-lg bg-red-500 sm:w-auto hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Confirm</button>
+                            class="mt-2 py-2 px-4 w-full text-sm font-medium text-center text-white rounded-lg bg-red-500 sm:w-auto hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Confirm</button>
                     </div>
                 </div>
             </div>
@@ -422,8 +446,23 @@
 
         const acceptPrivacyEl = document.getElementById('confirm-button');
         acceptPrivacyEl.addEventListener('click', function () {
-            privacyModal.hide();
-            checkout_student(id)
+            var current_date = document.getElementById("date").value
+            var time = document.getElementById("time").value
+            var date = new Date(current_date + " " + time)
+            var current_time = new Date()
+            if (date instanceof Date && !isNaN(date.valueOf())) {
+                if (date.getTime() <= current_time.getTime()) {
+                    privacyModal.hide();
+                    checkout_student(id, date.getTime() / 1000)
+                } else {
+                    document.getElementById("error").innerText = "Checkout date cannot be in the future."
+                }
+            } else {
+                document.getElementById("error").innerText = "Invalid Date"
+            }
+
+
+            // checkout_student(id)
         });
     }
 
@@ -466,9 +505,10 @@
 
     }
 
-    function checkout_student(id) {
+    function checkout_student(id, time) {
         var server_data = [
             { "id": id },
+            { "time": time }
         ];
 
         $.ajax({
