@@ -16,22 +16,21 @@
     <table>
         <thead>
             <tr>
-                <th>Username</th>
-                <th>Student ID</th>
-                <th>Current Location</th>
-                <th>Last Logged Attendance Time</th>
-                <th>Hours Logged</th>
+                <th>name</th>
+                <th>id</th>
+                <th>is_admin</th>
+                <th>location</th>
+                <th>last logged attendance time</th>
+                <th>hours_logged</th>
             </tr>
         </thead>
 
         <tbody>
             {% for student in students %}
             <tr>
-                <td>{{ student.username }}</td>
-                <td>{{ student.school_id }}</td>
-                <td>{{ student.cur_location.value }}</td>
-                <td>{{ student.last_logged_attendance_time }}</td>
-                <td>{{ student.hours_logged }}</td>
+                <td>{{ student.log_time }}</td>
+                <td>{{ student.location }}</td>
+                <td>{{ student.attendee }}</td>
             </tr>
             {% endfor %}
         </tbody>

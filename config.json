@@ -5,5 +5,7 @@
         "garage"
     ],
     "name": "FalconScout",
-    "base_url": "localhost:5000"
+    "base_url": "team4099.com/attendance",
+    "rootuser": "root",
+    "rootpass": "123456"
 }
