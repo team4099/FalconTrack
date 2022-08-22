@@ -2,8 +2,8 @@ import sys
 from slack_sdk import WebClient
 import json
 
-class SlackWrapper:
 
+class SlackWrapper:
     def __init__(self, api_key):
         self.client = WebClient(token=api_key)
 
@@ -20,34 +20,45 @@ class SlackWrapper:
                         " into an account with permissions on another level."
                         " is this you? pls enter the 6 digit code below into FalconTrack."
                     ),
-                }
+                },
             },
             {"type": "divider"},
+        ]
+
+        verification_number_messsage = [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": (
-                        f"*{verification_number}*"
-                    ),
-                }
+                    "text": (f"*{verification_number}*"),
+                },
             }
         ]
 
         try:
             self.client.chat_postMessage(
-                channel=f"@{first_name}",
-                blocks=verification_message_block
+                channel=f"@{first_name}", blocks=verification_message_block
+            )
+            self.client.chat_postMessage(
+                channel=f"@{first_name}", blocks=verification_number_messsage
             )
             return None
         except:
             self.client.chat_postMessage(
                 channel=f"@{first_name[0]}{last_name}",
-                blocks=verification_message_block
+                blocks=verification_message_block,
+            )
+            self.client.chat_postMessage(
+                channel=f"@{first_name[0]}{last_name}",
+                blocks=verification_number_messsage,
             )
             return None
         else:
             self.client.chat_postMessage(
                 channel=f"@{first_name[0]}{last_name}1",
-                blocks=verification_message_block
+                blocks=verification_message_block,
+            )
+            self.client.chat_postMessage(
+                channel=f"@{first_name[0]}{last_name}1",
+                blocks=verification_number_messsage,
             )
