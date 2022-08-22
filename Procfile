@@ -1,1 +1,1 @@
-web: gunicorn app:app --certfile FULLCHAIN --keyfile KEY
+web: gunicorn app:app
