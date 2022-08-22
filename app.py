@@ -308,9 +308,8 @@ def logout():
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
-    return render_template(
-        "login.html", title="Home", base=set_base_param()
-    )
+    return render_template("login.html", title="Home", base=set_base_param())
+
 
 @app.route("/process_login", methods=["POST"])
 def process_login():
@@ -325,15 +324,22 @@ def process_login():
             if student is not None:
                 if str(student.school_id) == login_info[2]["password"]:
                     if name == "root":
-                        session["user"] = name
+                        session["user"] = student.username
                         session["isLoggedIn"] = True
                         session["is_admin"] = student.is_admin
                         return jsonify({"action": "logged"})
-                        
+
                     else:
-                        session["user"] = name
-                        session["verification_number"] = random.randrange(100000, 999999)
-                        slack_app.send_verification_message(student.username.split(" ")[0], student.username.split(" ")[1], session["verification_number"])
+                        print(student.username)
+                        session["user"] = student.username
+                        session["verification_number"] = random.randrange(
+                            100000, 999999
+                        )
+                        slack_app.send_verification_message(
+                            student.username.split(" ")[0],
+                            student.username.split(" ")[1],
+                            session["verification_number"],
+                        )
                         return jsonify({"action": "verify"})
                 else:
                     return jsonify({"action": "Incorrect username or password"})
@@ -347,13 +353,14 @@ def process_login():
 
         if login_info[1]["code"] == str(session["verification_number"]):
             print("verified")
-            session["user"] = name
+            session["user"] = student.username
             session["isLoggedIn"] = True
             session["is_admin"] = student.is_admin
             return jsonify({"action": "logged"})
         else:
             session["user"] = None
             return jsonify({"action": "Incorrect verification number"})
+
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
@@ -423,7 +430,6 @@ def dashboard():
                             flash(f"{name} was successfully added as a location")
                             flash_color = "text-green-500"
                             return redirect(url_for("dashboard"))
-
         if Students.query.filter_by(username=session["user"]).first().is_admin == True:
             return render_template(
                 "dashboard.html",
