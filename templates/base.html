@@ -16,6 +16,11 @@
     {% for cdn in base["cdn"] %}
     <script src="{{ cdn }}"></script>
     {% endfor %}
+    <script>
+        if (location.protocol !== 'https:') {
+            location.replace(`https:${location.href.substring(location.protocol.length)}`);
+        }
+    </script>
 
     <title>
         {% if title %}
