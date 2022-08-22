@@ -8,6 +8,7 @@ from flask import (
     session,
     jsonify,
 )
+from flask_session import Session
 from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
 import slack
@@ -35,9 +36,9 @@ slack_app = SlackWrapper(os.getenv("SLACK_KEY"))
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
 app.config["SECRET_KEY"] = "the random string"
-app.permanent_session_lifetime = timedelta(days=365)
-
-
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 QRcode(app)
 
 db = SQLAlchemy(app)
