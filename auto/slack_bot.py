@@ -36,6 +36,7 @@ class SlackWrapper:
         ]
 
         try:
+            print("first name")
             self.client.chat_postMessage(
                 channel=f"@{first_name}", blocks=verification_message_block
             )
@@ -44,21 +45,24 @@ class SlackWrapper:
             )
             return None
         except:
-            self.client.chat_postMessage(
-                channel=f"@{first_name[0]}{last_name}",
-                blocks=verification_message_block,
-            )
-            self.client.chat_postMessage(
-                channel=f"@{first_name[0]}{last_name}",
-                blocks=verification_number_messsage,
-            )
-            return None
-        else:
-            self.client.chat_postMessage(
-                channel=f"@{first_name[0]}{last_name}1",
-                blocks=verification_message_block,
-            )
-            self.client.chat_postMessage(
-                channel=f"@{first_name[0]}{last_name}1",
-                blocks=verification_number_messsage,
-            )
+            try:
+                print("firstinit_lastname")
+                self.client.chat_postMessage(
+                    channel=f"@{first_name[0]}{last_name}",
+                    blocks=verification_message_block,
+                )
+                self.client.chat_postMessage(
+                    channel=f"@{first_name[0]}{last_name}",
+                    blocks=verification_number_messsage,
+                )
+                return None
+            except:
+                print("firstinit_lastname_1")
+                self.client.chat_postMessage(
+                    channel=f"@{first_name[0]}{last_name}1",
+                    blocks=verification_message_block,
+                )
+                self.client.chat_postMessage(
+                    channel=f"@{first_name[0]}{last_name}1",
+                    blocks=verification_number_messsage,
+                )

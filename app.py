@@ -203,7 +203,7 @@ def homepage():
 
 @app.route("/generate", methods=["GET", "POST"])
 def generate():
-    if session["isLoggedIn"]:
+    if session["isLoggedIn"] and session["is_admin"]:
         if request.method == "POST":
             if (
                 not request.form["location"]
