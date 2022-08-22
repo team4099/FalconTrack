@@ -179,25 +179,28 @@ def set_base_param():
 
 @app.route("/")
 def homepage():
-    if session["isLoggedIn"]:
-        students = Students.query.all()
-        locations = set()
-        active_students = set()
-        for student in students:
-            if student.checked_in:
-                active_students.add(student)
-                locations.add(
-                    Location.query.filter_by(name=student.cur_location).first()
-                )
-        return render_template(
-            "index.html",
-            title="Home",
-            base=set_base_param(),
-            flash_color="text-white",
-            locations=locations,
-            active_students=active_students,
-        )
-    else:
+    try:
+        if session["isLoggedIn"]:
+            students = Students.query.all()
+            locations = set()
+            active_students = set()
+            for student in students:
+                if student.checked_in:
+                    active_students.add(student)
+                    locations.add(
+                        Location.query.filter_by(name=student.cur_location).first()
+                    )
+            return render_template(
+                "index.html",
+                title="Home",
+                base=set_base_param(),
+                flash_color="text-white",
+                locations=locations,
+                active_students=active_students,
+            )
+        else:
+            return render_template("login.html", title="Login", base=set_base_param())
+    except:
         return render_template("login.html", title="Login", base=set_base_param())
 
 
