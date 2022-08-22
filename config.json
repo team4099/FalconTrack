@@ -5,7 +5,7 @@
         "garage"
     ],
     "name": "FalconScout",
-    "base_url": "team4099.com/attendance",
+    "base_url": "falcontrackapp.herokuapp.com",
     "rootuser": "root",
     "rootpass": "123456"
 }
