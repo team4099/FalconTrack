@@ -10,6 +10,7 @@ from flask import (
 )
 from flask_qrcode import QRcode
 from flask_sqlalchemy import SQLAlchemy
+import slack
 from sqlalchemy.dialects.mysql import FLOAT
 from sqlalchemy import Enum
 import os
@@ -19,6 +20,8 @@ import enum
 from typing import List, Set, Dict, Tuple, Optional
 from datetime import datetime, timedelta
 import math
+from auto.slack_bot import SlackWrapper
+import random
 
 load_dotenv()
 
@@ -26,6 +29,8 @@ with open("config.json", "r") as json_file:
     config = json.load(json_file)
 
 base_url = config["base_url"]
+
+slack_app = SlackWrapper(os.getenv("SLACK_KEY"))
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
@@ -302,31 +307,59 @@ def logout():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    flash_color = "text-white"
-    if request.method == "POST":
-        if not request.form["username"] or not request.form["password"]:
-            flash("Please enter all the fields")
-            flash_color = "text-red-500"
-        else:
-            name = request.form["username"]
-            student = Students.query.filter(Students.username == name).first()
-            if student is not None:
-                if str(student.school_id) == request.form["password"]:
-                    flash_color = "text-green-500"
-                    session["user"] = name
-                    session["isLoggedIn"] = True
-                    session["is_admin"] = student.is_admin
-                    return redirect(url_for("homepage"))
-                else:
-                    flash("Incorrect password.")
-                    flash_color = "text-red-500"
-            else:
-                flash("Student does not exist.")
-                flash_color = "text-red-500"
 
-    return render_template(
-        "login.html", title="Home", flash_color=flash_color, base=set_base_param()
-    )
+    return render_template("login.html", title="Home", base=set_base_param())
+
+
+@app.route("/process_login", methods=["POST"])
+def process_login():
+    login_info = request.get_json()
+
+    if login_info[0]["action"] == "init":
+        if not login_info[1]["username"] or not login_info[2]["password"]:
+            return jsonify({"action": "Enter all info"})
+        else:
+            name = login_info[1]["username"]
+            student = Students.query.filter(Students.username.contains(name)).first()
+            if student is not None:
+                if str(student.school_id) == login_info[2]["password"]:
+                    if name == "root":
+                        session["user"] = student.username
+                        session["isLoggedIn"] = True
+                        session["is_admin"] = student.is_admin
+                        return jsonify({"action": "logged"})
+
+                    else:
+                        print(student.username)
+                        session["user"] = student.username
+                        session["verification_number"] = random.randrange(
+                            100000, 999999
+                        )
+                        slack_app.send_verification_message(
+                            student.username.split(" ")[0],
+                            student.username.split(" ")[1],
+                            session["verification_number"],
+                        )
+                        return jsonify({"action": "verify"})
+                else:
+                    return jsonify({"action": "Incorrect username or password"})
+            else:
+                return jsonify({"action": "Incorrect username or password"})
+
+    elif login_info[0]["action"] == "verification":
+        print(login_info[1]["code"], str(session["verification_number"]))
+        name = login_info[2]["username"]
+        student = Students.query.filter(Students.username.contains(name)).first()
+
+        if login_info[1]["code"] == str(session["verification_number"]):
+            print("verified")
+            session["user"] = student.username
+            session["isLoggedIn"] = True
+            session["is_admin"] = student.is_admin
+            return jsonify({"action": "logged"})
+        else:
+            session["user"] = None
+            return jsonify({"action": "Incorrect verification number"})
 
 
 @app.route("/dashboard", methods=["GET", "POST"])
@@ -397,7 +430,6 @@ def dashboard():
                             flash(f"{name} was successfully added as a location")
                             flash_color = "text-green-500"
                             return redirect(url_for("dashboard"))
-
         if Students.query.filter_by(username=session["user"]).first().is_admin == True:
             return render_template(
                 "dashboard.html",
