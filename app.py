@@ -330,7 +330,7 @@ def process_login():
                         return jsonify({"action": "logged"})
 
                     else:
-                        session["user"] = student.username
+                        print(student.username)
                         session["verification_number"] = random.randrange(
                             100000, 999999
                         )
