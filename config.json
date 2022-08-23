@@ -1,11 +1,6 @@
 {
-    "locations": [
-        "storage",
-        "mc",
-        "garage"
-    ],
-    "name": "FalconScout",
-    "base_url": "falcontrackapp.herokuapp.com",
+    "name": "FalconTrack",
+    "base_url": "attendance.team4099.com",
     "rootuser": "root",
     "rootpass": "123456"
 }

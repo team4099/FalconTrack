@@ -23,6 +23,7 @@ from datetime import datetime, timedelta
 import math
 from auto.slack_bot import SlackWrapper
 import random
+from urllib.parse import quote
 
 load_dotenv()
 
@@ -259,7 +260,7 @@ def generate():
                     db.session.commit()
 
                     fields = {
-                        "encoded": f"https://{base_url}/attendance?id={qrcode.id}&loc={location}"
+                        "encoded": f"https://{base_url}/attendance?id={qrcode.id}&loc={quote(location)}"
                     }
                     flash("QRcode successfully created.")
                     return render_template(

@@ -17,7 +17,7 @@
     <script src="{{ cdn }}"></script>
     {% endfor %}
     <script>
-        if (!window.location.href.includes("heroku")) {
+        if (!window.location.href.includes("heroku") || window.location.href.includes("localhost")) {
             link_loc = window.location.href.split(".com")[1]
             location.replace("https://falcontrackapp.herokuapp.com" + link_loc)
         }
