@@ -186,67 +186,38 @@ def set_base_param():
 
 @app.route("/")
 def homepage():
-    try:
-        if session["isLoggedIn"]:
-            students = Students.query.all()
-            locations = set()
-            active_students = set()
-            for student in students:
-                if student.checked_in:
-                    active_students.add(student)
-                    locations.add(
-                        Location.query.filter_by(name=student.cur_location).first()
-                    )
-            return render_template(
-                "index.html",
-                title="Home",
-                base=set_base_param(),
-                flash_color="text-white",
-                locations=locations,
-                active_students=active_students,
-            )
-        else:
-            return render_template("login.html", title="Login", base=set_base_param())
-    except:
-        return render_template("login.html", title="Login", base=set_base_param())
+    if "isLoggedIn" in session and session["isLoggedIn"]:
+        students = Students.query.all()
+        locations = set()
+        active_students = set()
+        for student in students:
+            if student.checked_in:
+                active_students.add(student)
+                locations.add(
+                    Location.query.filter_by(name=student.cur_location).first()
+                )
+        return render_template(
+            "index.html",
+            title="Home",
+            base=set_base_param(),
+            flash_color="text-white",
+            locations=locations,
+            active_students=active_students,
+        )
+    return redirect(url_for("login"))
 
 
 @app.route("/generate", methods=["GET", "POST"])
 def generate():
-    if session["isLoggedIn"] and session["is_admin"]:
-        if request.method == "POST":
-            if (
-                not request.form["location"]
-                or not request.form["exprdate"]
-                or not request.form["range"]
-            ):
-                flash("Please fill out all fields.")
-                return render_template(
-                    "generate.html",
-                    title="Generate QR Code",
-                    locations=Location.query.all(),
-                    url="Failed to generate QRcode",
-                    flash_color="text-red-500",
-                    base=set_base_param(),
-                )
-            else:
-                error_catch = False
-                location = request.form["location"]
-                exprdate = int(request.form["exprdate"])
-                if location == "Online Meeting":
-                    qrcode_range = 100000000
-                else:
-                    qrcode_range = request.form["range"]
-                try:
-                    qrcode_range = int(qrcode_range)
-                    if qrcode_range < 300:
-                        flash("Range is less than 300 ft.")
-                        error_catch = True
-                except ValueError:
-                    flash("Range is not a number.")
-                    error_catch = True
-
-                if error_catch:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
+        if session["is_admin"]:
+            if request.method == "POST":
+                if (
+                    not request.form["location"]
+                    or not request.form["exprdate"]
+                    or not request.form["range"]
+                ):
+                    flash("Please fill out all fields.")
                     return render_template(
                         "generate.html",
                         title="Generate QR Code",
@@ -255,61 +226,61 @@ def generate():
                         flash_color="text-red-500",
                         base=set_base_param(),
                     )
+                else:
+                    error_catch = False
+                    location = request.form["location"]
+                    exprdate = int(request.form["exprdate"])
+                    if location == "Online Meeting":
+                        qrcode_range = 100000000
+                    else:
+                        qrcode_range = request.form["range"]
+                    try:
+                        qrcode_range = int(qrcode_range)
+                        if qrcode_range < 300:
+                            flash("Range is less than 300 ft.")
+                            error_catch = True
+                    except ValueError:
+                        flash("Range is not a number.")
+                        error_catch = True
 
-                qrcode = QRcode(location, exprdate, qrcode_range)
-                db.session.flush()
-                db.session.add(qrcode)
-                db.session.commit()
+                    if error_catch:
+                        return render_template(
+                            "generate.html",
+                            title="Generate QR Code",
+                            locations=Location.query.all(),
+                            url="Failed to generate QRcode",
+                            flash_color="text-red-500",
+                            base=set_base_param(),
+                        )
 
-                fields = {
-                    "encoded": f"https://{base_url}/attendance?id={qrcode.id}&loc={location}"
-                }
-                flash("QRcode successfully created.")
+                    qrcode = QRcode(location, exprdate, qrcode_range)
+                    db.session.flush()
+                    db.session.add(qrcode)
+                    db.session.commit()
+
+                    fields = {
+                        "encoded": f"https://{base_url}/attendance?id={qrcode.id}&loc={location}"
+                    }
+                    flash("QRcode successfully created.")
+                    return render_template(
+                        "generate.html",
+                        title="Generate QR Code",
+                        locations=Location.query.all(),
+                        url=fields["encoded"],
+                        flash_color="text-green-500",
+                        base=set_base_param(),
+                        **fields,
+                    )
+
+            else:
                 return render_template(
                     "generate.html",
                     title="Generate QR Code",
                     locations=Location.query.all(),
-                    url=fields["encoded"],
-                    flash_color="text-green-500",
                     base=set_base_param(),
-                    **fields,
                 )
-
-        else:
-            return render_template(
-                "generate.html",
-                title="Generate QR Code",
-                locations=Location.query.all(),
-                base=set_base_param(),
-            )
-    else:
         return redirect(url_for("error"))
-
-
-@app.route("/current_students")
-def show_all():
-    return render_template("show_all.html", students=AttendanceLog.query.all())
-
-
-@app.route("/new", methods=["GET", "POST"])
-def new():
-    if request.method == "POST":
-        if not request.form["username"] or not request.form["studentid"]:
-            flash("Please enter all the fields")
-        else:
-            try:
-                is_admin = request.form["is_admin"] == "on"
-            except KeyError:
-                is_admin = False
-            student = Students(
-                request.form["username"], request.form["studentid"], is_admin
-            )
-            db.session.flush()
-            db.session.add(student)
-            db.session.commit()
-            flash("Record was successfully added")
-            return redirect(url_for("show_all"))
-    return render_template("new.html")
+    return redirect(url_for("login"))
 
 
 @app.route("/logout", methods=["GET"])
@@ -322,7 +293,6 @@ def logout():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-
     return render_template("login.html", title="Home", base=set_base_param())
 
 
@@ -376,7 +346,7 @@ def process_login():
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         flash_color = "text-green-500"
         if request.method == "POST":
             if "student-add" in request.form:
@@ -457,7 +427,7 @@ def dashboard():
 
 @app.route("/add_student", methods=["POST"])
 def add_student():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         if session["is_admin"]:
             db.session.flush()
             student_data = request.get_json()
@@ -475,7 +445,7 @@ def add_student():
 
 @app.route("/process_student_change", methods=["POST", "GET"])
 def process_student_change():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         if session["is_admin"]:
             if request.method == "POST":
                 db.session.flush()
@@ -501,7 +471,7 @@ def process_student_change():
 
 @app.route("/process_location_change", methods=["POST"])
 def process_location_change():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         if request.method == "POST":
             db.session.flush()
             location_data = request.get_json()
@@ -547,7 +517,7 @@ def page_not_found(e):
 
 @app.route("/add_attendance", methods=["POST"])
 def process_attendance():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         flash_color = "text-white"
         student = Students.query.filter_by(username=session["user"]).first()
         if student != None:
@@ -607,7 +577,7 @@ def process_attendance():
 
 @app.route("/attendance", methods=["GET", "POST"])
 def log():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         if request.method == "GET":
             id = request.args.get("id")
             location = request.args.get("loc")
@@ -623,12 +593,13 @@ def log():
                         base=set_base_param(),
                         checked_in=check_in_button_text,
                     )
-    return redirect(url_for("error"))
+        return redirect(url_for("error"))
+    return redirect(url_for("login"))
 
 
 @app.route("/checkout_student", methods=["POST"])
 def checkout():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         if session["is_admin"]:
             db.session.flush()
 
@@ -644,12 +615,13 @@ def checkout():
             db.session.commit()
 
             return jsonify({"action_code": "200"})
-    return redirect(url_for("error"))
+        return redirect(url_for("error"))
+    return redirect(url_for("login"))
 
 
 @app.route("/delete_student", methods=["POST"])
 def delete_student():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         if request.method == "POST":
             db.session.flush()
             student_data = request.get_json()
@@ -666,7 +638,7 @@ def delete_student():
 
 @app.route("/delete_location", methods=["POST"])
 def delete_location():
-    if session["isLoggedIn"]:
+    if "isLoggedIn" in session and session["isLoggedIn"]:
         if request.method == "POST":
             db.session.flush()
             location_data = request.get_json()

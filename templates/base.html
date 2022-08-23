@@ -16,18 +16,12 @@
     {% for cdn in base["cdn"] %}
     <script src="{{ cdn }}"></script>
     {% endfor %}
-    <script>
+    <!-- <script>
         if (!window.location.href.includes("heroku")){
             link_loc = window.location.href.split(".com")[1]
             location.replace("https://falcontrackapp.herokuapp.com/" + link_loc)
         }
-
-        /*
-        if (location.protocol !== 'https:') {
-            location.replace(`https:${location.href.substring(location.protocol.length)}`);
-        }
-        */
-    </script>
+    </script> -->
 
     <title>
         {% if title %}
