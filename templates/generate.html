@@ -20,7 +20,7 @@
                 <a href="#">
                     <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Location</h5>
                 </a>
-                <select name="location" id="select"
+                <select name="location" id="select" onchange="check_location()"
                     class="w-[14rem] h-10 bg-gray-700 text-gray-300 rounded-lg px-2 mb-8 text-sm">
                     {% for location in locations %}
                     <option value="{{ location.name }}">{{ location.name }}</option>
@@ -41,7 +41,9 @@
                     </select>
                 </div>
                 <a href="#">
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Range of QRcode
+                    <h5 id="rangeheader" class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                        Range of
+                        QRcode
                     </h5>
                 </a>
                 <input name="range" id="range"
@@ -72,4 +74,21 @@
 
     </div>
 </div>
+
+<script>
+    document.getElementById("select").selectedIndex = -1;
+    function check_location() {
+        var select = document.getElementById("select")
+        var select_value = select.options[select.selectedIndex].value
+        if (select_value == "Online Meeting") {
+            document.getElementById("rangeheader").style.display = "none";
+            document.getElementById("range").style.display = "none";
+            document.getElementById("range").value = 1;
+        } else {
+            document.getElementById("rangeheader").style.display = "block";
+            document.getElementById("range").style.display = "block";
+            document.getElementById("range").value = "";
+        }
+    }
+</script>
 {% endblock content %}

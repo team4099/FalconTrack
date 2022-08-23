@@ -121,7 +121,13 @@ class Location(db.Model):
     last_edited_on = db.Column(db.DateTime(), nullable=True)
     created_on = db.Column(db.DateTime(), nullable=True)
 
-    def __init__(self, name: str, latitude: float, longitude: float, created_by: str):
+    def __init__(
+        self,
+        name: str,
+        latitude: float,
+        longitude: float,
+        created_by: str,
+    ):
         self.name = name
         self.latitude = latitude
         self.longitude = longitude
@@ -227,7 +233,10 @@ def generate():
                 error_catch = False
                 location = request.form["location"]
                 exprdate = int(request.form["exprdate"])
-                qrcode_range = request.form["range"]
+                if location == "Online Meeting":
+                    qrcode_range = 100000000
+                else:
+                    qrcode_range = request.form["range"]
                 try:
                     qrcode_range = int(qrcode_range)
                     if qrcode_range < 300:
@@ -527,12 +536,14 @@ def page_not_found(e):
         "404.html", title="404 - Page Not Found", base=set_base_param()
     )
 
+
 @app.errorhandler(500)
 def page_not_found(e):
     # note that we set the 404 status explicitly
     return render_template(
         "500.html", title="500 - Internal Server Error", base=set_base_param()
     )
+
 
 @app.route("/add_attendance", methods=["POST"])
 def process_attendance():
@@ -686,6 +697,10 @@ def get_distance(lat_1, lng_1, lat_2, lng_2):
 
 if __name__ == "__main__":
     db.create_all()
+    if Location.query.filter(Location.name == "Online Meeting").first() == None:
+        db.session.flush()
+        db.session.add(Location("Online Meeting", 39, 49, "root"))
+        db.session.commit()
     if Students.query.filter(Students.username == config["rootuser"]).first() == None:
         db.session.flush()
         db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
