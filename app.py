@@ -260,7 +260,7 @@ def generate():
                     db.session.commit()
 
                     fields = {
-                        "encoded": f"https://{base_url}/attendance?id={qrcode.id}&loc={quote(location)}"
+                        "encoded": f"{base_url}/attendance?id={qrcode.id}&loc={quote(location)}"
                     }
                     flash("QRcode successfully created.")
                     return render_template(
