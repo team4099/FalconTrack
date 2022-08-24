@@ -104,7 +104,12 @@
             }
         });
     }
+    function sleep(miliseconds) {
+        var currentTime = new Date().getTime();
 
+        while (currentTime + miliseconds >= new Date().getTime()) {
+        }
+    }
     function submit_verification() {
         document.getElementById("verificationModal").classList.add("hidden")
 
@@ -122,11 +127,12 @@
             dataType: 'json',
             success: function (result) {
                 if (result["action"] == "logged") {
-                    console.log("redirect")
-                    if ("{{ from_attendance }}") {
-                        location.replace('/attendance?id={{id}}&{{loc}}')
+                    var from_attendance = "{{ from_attendance }}"
+                    console.log(from_attendance)
+                    if (from_attendance == "True") {
+                        location.assign('/attendance?id={{id}}&loc={{loc}}')
                     } else {
-                        location.replace('/')
+                        location.assign('/')
                     }
 
                 }

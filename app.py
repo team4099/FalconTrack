@@ -604,6 +604,7 @@ def log():
         if request.method == "GET":
             id = request.args.get("id")
             location = request.args.get("loc")
+            print(id, location)
             if id is not None and location is not None:
                 student = Students.query.filter_by(username=session["user"]).first()
                 if student != None:
