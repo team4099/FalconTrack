@@ -47,6 +47,7 @@ class SlackWrapper:
         except:
             try:
                 print("firstinit_lastname")
+                print(f"@{first_name[0]}{last_name}")
                 self.client.chat_postMessage(
                     channel=f"@{first_name[0]}{last_name}",
                     blocks=verification_message_block,

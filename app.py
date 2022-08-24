@@ -440,28 +440,28 @@ def dashboard():
     return redirect(url_for("error"))
 
 
-@app.route("/add_student", methods=["POST"])
-def add_student():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if session["is_admin"]:
-            pass
+# @app.route("/add_student", methods=["POST"])
+# def add_student():
+#     if "isLoggedIn" in session and session["isLoggedIn"]:
+#         if session["is_admin"]:
+#             pass
 
-    db.session.flush()
-    student_data = request.get_json()
+#     db.session.flush()
+#     student_data = request.get_json()
 
-    print(student_data)
+#     print(student_data)
 
-    student = Students(
-        username=student_data["username"],
-        school_id=student_data["school_id"],
-        is_admin=(student_data["type"] != "student"),
-    )
+#     student = Students(
+#         username=student_data["username"],
+#         school_id=student_data["school_id"],
+#         is_admin=(student_data["type"] != "student"),
+#     )
 
-    db.session.add(student)
+#     db.session.add(student)
 
-    db.session.commit()
+#     db.session.commit()
 
-    return jsonify({"action": "added"})
+#     return jsonify({"action": "added"})
 
 
 @app.route("/process_student_change", methods=["POST", "GET"])

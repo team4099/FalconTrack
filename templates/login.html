@@ -128,7 +128,6 @@
             success: function (result) {
                 if (result["action"] == "logged") {
                     var from_attendance = "{{ from_attendance }}"
-                    console.log(from_attendance)
                     if (from_attendance == "True") {
                         location.assign('/attendance?id={{id}}&loc={{loc}}')
                     } else {
