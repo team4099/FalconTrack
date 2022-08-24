@@ -406,7 +406,7 @@
     }
 
     function update_location(id) {
-        const date = new Date().getTimezoneOffset()
+        const date = new Date(new Date().toLocaleString())
         var server_data = [
             { "id": id },
             { "name": document.getElementById(id + ".name").value },
@@ -471,9 +471,10 @@
             var current_date = document.getElementById("date").value
             var time = document.getElementById("time").value
             const date = new Date(current_date + " " + time)
-            const current_time = new Date()
+            var current_date = new Date()
+            const current_time = new Date(new Date().toLocaleString())
             if (date instanceof Date && !isNaN(date.valueOf())) {
-                if (date.getTime() <= (current_time.getTime() + new Date().getTimezoneOffset())) {
+                if (date.getTime() <= (current_time.getTime())) {
                     if (date.getTime() >= olddate * 1000) {
                         privacyModal.hide();
                         checkout_student(id, date.getTime() / 1000)
