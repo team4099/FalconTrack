@@ -298,7 +298,7 @@
                             </td>
                             <td class="py-4 px-3">
                                 <button type="submit" id="checkout" name="checkout"
-                                    onclick="confirm_student_checkout({{ student.id }}, '{{ student.username}}')"
+                                    onclick="confirm_student_checkout({{ student.id }}, '{{ student.username}}', '{{ student.last_logged_attendance_time.timestamp() }}')"
                                     class="mx-0 mt-0 py-2 px-3 text-sm bg-none hover:bg-none focus:ring-4 font-medium rounded-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                         fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round"
@@ -343,7 +343,7 @@
             <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 md:p-8">
                 <div class="mb-4 text-sm font-light text-gray-500 dark:text-gray-400">
                     <h3 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">Are you sure?</h3>
-                    <p id="error" class="text-red-500">
+                    <p id="errorcheckout" class="text-red-500">
                     </p>
                     <p id="deletion">
                     </p>
@@ -406,7 +406,7 @@
     }
 
     function update_location(id) {
-        const date = new Date()
+        const date = new Date().getTimezoneOffset()
         var server_data = [
             { "id": id },
             { "name": document.getElementById(id + ".name").value },
@@ -457,7 +457,8 @@
         });
     }
 
-    function confirm_student_checkout(id, name) {
+    function confirm_student_checkout(id, name, olddate) {
+        console.log(olddate)
         privacyModal.show();
         document.getElementById("deletion").innerText = "Please confirm that you want to checkout " + name + "."
         const closeModalEl = document.getElementById('close-modal');
@@ -469,17 +470,21 @@
         acceptPrivacyEl.addEventListener('click', function () {
             var current_date = document.getElementById("date").value
             var time = document.getElementById("time").value
-            var date = new Date(current_date + " " + time)
-            var current_time = new Date()
+            const date = new Date(current_date + " " + time)
+            const current_time = new Date()
             if (date instanceof Date && !isNaN(date.valueOf())) {
-                if (date.getTime() <= current_time.getTime()) {
-                    privacyModal.hide();
-                    checkout_student(id, date.getTime() / 1000)
+                if (date.getTime() <= (current_time.getTime() + new Date().getTimezoneOffset())) {
+                    if (date.getTime() >= olddate * 1000) {
+                        privacyModal.hide();
+                        checkout_student(id, date.getTime() / 1000)
+                    } else {
+                        document.getElementById("errorcheckout").innerText = "Checkout date cannot be in the past."
+                    }
                 } else {
-                    document.getElementById("error").innerText = "Checkout date cannot be in the future."
+                    document.getElementById("errorcheckout").innerText = "Checkout date cannot be in the future."
                 }
             } else {
-                document.getElementById("error").innerText = "Invalid Date"
+                document.getElementById("errorcheckout").innerText = "Invalid Date"
             }
 
 
