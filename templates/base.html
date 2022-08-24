@@ -17,11 +17,11 @@
     <script src="{{ cdn }}"></script>
     {% endfor %}
     <script>
-        // if (!window.location.href.includes("heroku") || window.location.href.includes("localhost")) {
-        //     link_loc = window.location.href.split("/")[1]
-        //     console.log(link_loc)
-        //     // location.replace("https://falcontrackapp.herokuapp.com" + link_loc)
-        // }
+        if (!window.location.href.includes("heroku") || window.location.href.includes("localhost")) {
+            link_loc = window.location.href.split("/")[1]
+            console.log(link_loc)
+            // location.replace("https://falcontrackapp.herokuapp.com" + link_loc)
+        }
     </script>
 
     <title>
