@@ -1,6 +1,6 @@
 {
     "name": "FalconTrack",
-    "base_url": "attendance.team4099.com",
+    "base_url": "falcontrackapp.herokuapp.com",
     "rootuser": "root",
     "rootpass": "123456"
 }
