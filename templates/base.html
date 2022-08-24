@@ -17,7 +17,7 @@
     <script src="{{ cdn }}"></script>
     {% endfor %}
     <script>
-        if (location.protocol !== 'https:') {
+        if (location.protocol !== 'https:' && !window.location.href.includes("localhost")) {
             location.replace(`https:${location.href.substring(location.protocol.length)}`);
         }
     </script>
