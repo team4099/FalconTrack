@@ -123,7 +123,12 @@
             success: function (result) {
                 if (result["action"] == "logged") {
                     console.log("redirect")
-                    location.replace("/")
+                    if ("{{ from_attendance }}") {
+                        location.replace('/attendance?id={{id}}&{{loc}}')
+                    } else {
+                        location.replace('/')
+                    }
+
                 }
                 else {
                     document.getElementById("errorMessage").innerText = result["action"]

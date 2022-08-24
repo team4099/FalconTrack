@@ -301,13 +301,19 @@ def logout():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template("login.html", title="Home", base=set_base_param())
+    return render_template(
+        "login.html",
+        title="Home",
+        base=set_base_param(),
+        from_attendance=request.args.get("from_attendance"),
+        id=request.args.get("id"),
+        loc=request.args.get("location"),
+    )
 
 
 @app.route("/process_login", methods=["POST"])
 def process_login():
     login_info = request.get_json()
-
     if login_info[0]["action"] == "init":
         if not login_info[1]["username"] or not login_info[2]["password"]:
             return jsonify({"action": "Enter all info"})
@@ -611,7 +617,14 @@ def log():
                         checked_in=check_in_button_text,
                     )
         return redirect(url_for("error"))
-    return redirect(url_for("login"))
+    return redirect(
+        url_for(
+            "login",
+            from_attendance=True,
+            id=request.args.get("id"),
+            location=request.args.get("loc"),
+        )
+    )
 
 
 @app.route("/checkout_student", methods=["POST"])
