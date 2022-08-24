@@ -3,5 +3,5 @@
     "base_url": "falcontrackapp.herokuapp.com",
     "rootuser": "root",
     "rootpass": "123456",
-    "timezone": -3.0
+    "timezone": -0
 }
