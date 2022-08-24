@@ -108,7 +108,7 @@
                                     id="{{ student.id }}.school_id" onChange="update_student({{ student.id }})" />
                             </td>
                             <td class="py-4 px-3">
-                                {{ student.last_logged_attendance_time }}
+                                {{ student.last_logged_attendance_time + timezone_offset }}
                             </td>
                             <td class="py-4 px-3">
                                 <select name="student_type" placeholder="student"
@@ -234,7 +234,7 @@
                                     id="{{ location.id }}.longitude" onChange="update_location({{ location.id }})" />
                             </td>
                             <td class="py-4 px-3">
-                                {{ location.last_edited_on }}
+                                {{ location.last_edited_on + timezone_offset }}
                             </td>
                             <td class="py-4 px-3">
                                 {{ location.last_edited_by }}
@@ -294,7 +294,7 @@
                             <td class="py-4 px-3 w-[5rem] h-max border-none">{{ student.cur_location }}
                             </td>
                             <td class="py-4 px-3 w-[5rem] h-max border-none">
-                                {{ student.last_logged_attendance_time }}
+                                {{ student.last_logged_attendance_time + timezone_offset }}
                             </td>
                             <td class="py-4 px-3">
                                 <button type="submit" id="checkout" name="checkout"

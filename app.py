@@ -33,6 +33,8 @@ with open("config.json", "r") as json_file:
 
 base_url = config["base_url"]
 
+tzoffset = timedelta(hours=float(config["timezone"]))
+
 slack_app = SlackWrapper(os.getenv("SLACK_KEY"))
 
 app = Flask(__name__)
@@ -62,9 +64,7 @@ class Students(db.Model):
         school_id: int,
         is_admin: bool,
         cur_location: Optional[str] = None,
-        last_logged_attendance_time: Optional[datetime] = datetime.now(
-            tz=pytz.timezone(config["timezone"])
-        ),
+        last_logged_attendance_time: Optional[datetime] = datetime.now(),
         hours_logged: Optional[int] = 0,
         checked_in: Optional[bool] = False,
     ):
@@ -154,9 +154,7 @@ class AttendanceLog(db.Model):
         self,
         name: str,
         location: str,
-        log_time: Optional[datetime] = datetime.now(
-            tz=pytz.timezone(config["timezone"])
-        ),
+        log_time: Optional[datetime] = datetime.now(),
     ):
         self.log_time = log_time
         self.attendee = name
@@ -212,6 +210,7 @@ def homepage():
             flash_color="text-white",
             locations=locations,
             active_students=active_students,
+            timezone_offset=tzoffset,
         )
     return redirect(url_for("login"))
 
@@ -430,6 +429,7 @@ def dashboard():
                 students=Students.query.all(),
                 locations=Location.query.all(),
                 active_students=Students.query.filter_by(checked_in=True),
+                timezone_offset=tzoffset,
             )
     return redirect(url_for("error"))
 
@@ -579,9 +579,7 @@ def process_attendance():
                 return jsonify({"action_code": "203"})
 
             if dist <= qrcode.range_of_qrcode:
-                student.last_logged_attendance_time = datetime.now(
-                    tz=pytz.timezone(config["timezone"])
-                )
+                student.last_logged_attendance_time = datetime.now()
                 db.session.flush()
                 log = AttendanceLog(session["user"], location_name)
                 db.session.add(log)

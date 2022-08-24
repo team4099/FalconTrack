@@ -9,38 +9,38 @@
             (if any) at all your build spaces.</h2>
 
         {% for location in locations %}
-            <div class="overflow-x-auto relative shadow-md sm:rounded-lg mb-8">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
-                            <th scope="col" class="py-3 px-6">
-                                {{ location.name }}
-                            </th>
-                            <th scope="col" class="py-3 px-6">
-                                Check in time 
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in active_students %}
-                        <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
-                            {% if student.cur_location == location.name %}
-                                <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                    {{ student.username }}
-                                </th>
-                                <td class="py-4 px-6">
-                                    {{ student.last_logged_attendance_time.strftime('%Y-%m-%d %H:%M:%S') }}
-                                </td>
-                            {% else %}
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto relative shadow-md sm:rounded-lg mb-8">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="py-3 px-6">
+                            {{ location.name }}
+                        </th>
+                        <th scope="col" class="py-3 px-6">
+                            Check in time
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in active_students %}
+                    <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
+                        {% if student.cur_location == location.name %}
+                        <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ student.username }}
+                        </th>
+                        <td class="py-4 px-6">
+                            {{ student.last_logged_attendance_time + timezone_offset}}
+                        </td>
+                        {% else %}
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% endfor %}
-        
-        
+
+
     </h1>
 </div>
 
