@@ -430,18 +430,24 @@ def dashboard():
 def add_student():
     if "isLoggedIn" in session and session["isLoggedIn"]:
         if session["is_admin"]:
-            db.session.flush()
-            student_data = request.get_json()
+            pass
 
-            student = Students(
-                username=student_data[0]["username"],
-                school_id=student_data[1]["school_id"],
-                is_admin=(student_data[2]["type"] != "student"),
-            )
+    db.session.flush()
+    student_data = request.get_json()
 
-            db.session.add(student)
+    print(student_data)
 
-            db.session.commit()
+    student = Students(
+        username=student_data["username"],
+        school_id=student_data["school_id"],
+        is_admin=(student_data["type"] != "student"),
+    )
+
+    db.session.add(student)
+
+    db.session.commit()
+
+    return jsonify({"action": "added"})
 
 
 @app.route("/process_student_change", methods=["POST", "GET"])
@@ -455,7 +461,9 @@ def process_student_change():
                 student_edit = Students.query.filter_by(
                     id=student_data[0]["id"]
                 ).first()
-                student_edit.username = student_data[1]["username"]
+                if (" " in student_data[1]["username"]):
+                    student_edit.username = student_data[1]["username"]
+                
                 student_edit.school_id = student_data[2]["school_id"]
 
                 if student_data[3]["is_admin"] == "student":
@@ -668,6 +676,10 @@ def get_distance(lat_1, lng_1, lat_2, lng_2):
     )  # converting kilometer output into feet
 
 
+test = [
+
+]
+
 if __name__ == "__main__":
     db.create_all()
     if Location.query.filter(Location.name == "Online Meeting").first() == None:
@@ -679,3 +691,5 @@ if __name__ == "__main__":
         db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
         db.session.commit()
     app.run(debug=True, host="0.0.0.0")
+
+
