@@ -24,14 +24,12 @@ import math
 from auto.slack_bot import SlackWrapper
 import random
 from urllib.parse import quote
+import pytz
 
 load_dotenv()
 
 with open("config.json", "r") as json_file:
     config = json.load(json_file)
-
-timezone_offset = float(config["timezone_offset"])
-tzoffset = timezone(timedelta(hours=timezone_offset))
 
 base_url = config["base_url"]
 
@@ -64,7 +62,9 @@ class Students(db.Model):
         school_id: int,
         is_admin: bool,
         cur_location: Optional[str] = None,
-        last_logged_attendance_time: Optional[datetime] = datetime.now(tzoffset),
+        last_logged_attendance_time: Optional[datetime] = datetime.now(
+            tz=pytz.timezone(config["timezone"])
+        ),
         hours_logged: Optional[int] = 0,
         checked_in: Optional[bool] = False,
     ):
@@ -104,7 +104,7 @@ class QRcode(db.Model):
         expr_date: int,
         range_of_qrcode: Optional[int] = 300,
     ):
-        cur_time = datetime.now(tzoffset)
+        cur_time = datetime.now(tz=pytz.timezone(config["timezone"]))
         cur_time = cur_time - timedelta(microseconds=cur_time.microsecond)
         date_obj = datetime.strptime(str(expr_date), "%H")
         delta = timedelta(hours=date_obj.hour)
@@ -136,9 +136,9 @@ class Location(db.Model):
         self.latitude = latitude
         self.longitude = longitude
         self.last_edited_by = created_by
-        created_on = datetime.now(tzoffset)
+        created_on = datetime.now(tz=pytz.timezone(config["timezone"]))
         self.created_on = created_on - timedelta(microseconds=created_on.microsecond)
-        last_edited_on = datetime.now(tzoffset)
+        last_edited_on = datetime.now(tz=pytz.timezone(config["timezone"]))
         self.last_edited_on = last_edited_on - timedelta(
             microseconds=last_edited_on.microsecond
         )
@@ -154,7 +154,9 @@ class AttendanceLog(db.Model):
         self,
         name: str,
         location: str,
-        log_time: Optional[datetime] = datetime.now(tzoffset),
+        log_time: Optional[datetime] = datetime.now(
+            tz=pytz.timezone(config["timezone"])
+        ),
     ):
         self.log_time = log_time
         self.attendee = name
@@ -467,9 +469,9 @@ def process_student_change():
                 student_edit = Students.query.filter_by(
                     id=student_data[0]["id"]
                 ).first()
-                if (" " in student_data[1]["username"]):
+                if " " in student_data[1]["username"]:
                     student_edit.username = student_data[1]["username"]
-                
+
                 student_edit.school_id = student_data[2]["school_id"]
 
                 if student_data[3]["is_admin"] == "student":
@@ -548,7 +550,11 @@ def process_attendance():
             else:
                 return jsonify({"action_code": "201"})
 
-            if qrcode.expr_date != None and datetime.now(tzoffset) > qrcode.expr_date:
+            if (
+                qrcode.expr_date != None
+                and datetime.now(tz=pytz.timezone(config["timezone"]))
+                > qrcode.expr_date
+            ):
                 return jsonify({"action_code": "205"})
 
             student = Students.query.filter_by(username=session["user"]).first()
@@ -577,7 +583,9 @@ def process_attendance():
                 return jsonify({"action_code": "203"})
 
             if dist <= qrcode.range_of_qrcode:
-                student.last_logged_attendance_time = datetime.now(tzoffset)
+                student.last_logged_attendance_time = datetime.now(
+                    tz=pytz.timezone(config["timezone"])
+                )
                 db.session.flush()
                 log = AttendanceLog(session["user"], location_name)
                 db.session.add(log)
@@ -682,9 +690,7 @@ def get_distance(lat_1, lng_1, lat_2, lng_2):
     )  # converting kilometer output into feet
 
 
-test = [
-
-]
+test = []
 
 if __name__ == "__main__":
     db.create_all()
@@ -697,5 +703,3 @@ if __name__ == "__main__":
         db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
         db.session.commit()
     app.run(debug=True, host="0.0.0.0")
-
-
