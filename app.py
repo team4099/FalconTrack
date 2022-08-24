@@ -104,7 +104,7 @@ class QRcode(db.Model):
         expr_date: int,
         range_of_qrcode: Optional[int] = 300,
     ):
-        cur_time = datetime.now(tz=pytz.timezone(config["timezone"]))
+        cur_time = datetime.now()
         cur_time = cur_time - timedelta(microseconds=cur_time.microsecond)
         date_obj = datetime.strptime(str(expr_date), "%H")
         delta = timedelta(hours=date_obj.hour)
@@ -136,9 +136,9 @@ class Location(db.Model):
         self.latitude = latitude
         self.longitude = longitude
         self.last_edited_by = created_by
-        created_on = datetime.now(tz=pytz.timezone(config["timezone"]))
+        created_on = datetime.now()
         self.created_on = created_on - timedelta(microseconds=created_on.microsecond)
-        last_edited_on = datetime.now(tz=pytz.timezone(config["timezone"]))
+        last_edited_on = datetime.now()
         self.last_edited_on = last_edited_on - timedelta(
             microseconds=last_edited_on.microsecond
         )
@@ -550,11 +550,7 @@ def process_attendance():
             else:
                 return jsonify({"action_code": "201"})
 
-            if (
-                qrcode.expr_date != None
-                and datetime.now(tz=pytz.timezone(config["timezone"]))
-                > qrcode.expr_date
-            ):
+            if qrcode.expr_date != None and datetime.now() > qrcode.expr_date:
                 return jsonify({"action_code": "205"})
 
             student = Students.query.filter_by(username=session["user"]).first()
