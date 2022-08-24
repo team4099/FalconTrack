@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 import json
 import enum
 from typing import List, Set, Dict, Tuple, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import math
 from auto.slack_bot import SlackWrapper
 import random
@@ -29,6 +29,9 @@ load_dotenv()
 
 with open("config.json", "r") as json_file:
     config = json.load(json_file)
+
+timezone_offset = float(config["timezone_offset"])
+tzoffset = timezone(timedelta(hours=timezone_offset))
 
 base_url = config["base_url"]
 
@@ -61,7 +64,7 @@ class Students(db.Model):
         school_id: int,
         is_admin: bool,
         cur_location: Optional[str] = None,
-        last_logged_attendance_time: Optional[datetime] = datetime.now(),
+        last_logged_attendance_time: Optional[datetime] = datetime.now(tzoffset),
         hours_logged: Optional[int] = 0,
         checked_in: Optional[bool] = False,
     ):
@@ -101,7 +104,7 @@ class QRcode(db.Model):
         expr_date: int,
         range_of_qrcode: Optional[int] = 300,
     ):
-        cur_time = datetime.now()
+        cur_time = datetime.now(tzoffset)
         cur_time = cur_time - timedelta(microseconds=cur_time.microsecond)
         date_obj = datetime.strptime(str(expr_date), "%H")
         delta = timedelta(hours=date_obj.hour)
@@ -133,9 +136,9 @@ class Location(db.Model):
         self.latitude = latitude
         self.longitude = longitude
         self.last_edited_by = created_by
-        created_on = datetime.now()
+        created_on = datetime.now(tzoffset)
         self.created_on = created_on - timedelta(microseconds=created_on.microsecond)
-        last_edited_on = datetime.now()
+        last_edited_on = datetime.now(tzoffset)
         self.last_edited_on = last_edited_on - timedelta(
             microseconds=last_edited_on.microsecond
         )
@@ -148,7 +151,10 @@ class AttendanceLog(db.Model):
     attendee = db.Column(db.String(50))
 
     def __init__(
-        self, name: str, location: str, log_time: Optional[datetime] = datetime.now()
+        self,
+        name: str,
+        location: str,
+        log_time: Optional[datetime] = datetime.now(tzoffset),
     ):
         self.log_time = log_time
         self.attendee = name
@@ -534,7 +540,7 @@ def process_attendance():
             else:
                 return jsonify({"action_code": "201"})
 
-            if qrcode.expr_date != None and datetime.now() > qrcode.expr_date:
+            if qrcode.expr_date != None and datetime.now(tzoffset) > qrcode.expr_date:
                 return jsonify({"action_code": "205"})
 
             student = Students.query.filter_by(username=session["user"]).first()
@@ -563,7 +569,7 @@ def process_attendance():
                 return jsonify({"action_code": "203"})
 
             if dist <= qrcode.range_of_qrcode:
-                student.last_logged_attendance_time = datetime.now()
+                student.last_logged_attendance_time = datetime.now(tzoffset)
                 db.session.flush()
                 log = AttendanceLog(session["user"], location_name)
                 db.session.add(log)
