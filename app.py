@@ -326,6 +326,12 @@ def process_login():
                         session["user"] = student.username
                         session["isLoggedIn"] = True
                         session["is_admin"] = student.is_admin
+                        for name in config["root_access"]:
+                            slack_app.send_generic_message(
+                                name.split(" ")[0],
+                                name.split(" ")[1],
+                                "Ruhroh. Root has been logged into. \n\n Thanks,\nMike",
+                            )
                         return jsonify({"action": "logged"})
 
                     else:

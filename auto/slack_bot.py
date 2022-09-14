@@ -13,8 +13,25 @@ class SlackWrapper:
             except:
                 pass
 
+    def send_message(self, first_name, last_name, block):
+        try:
+            print("first name")
+            self.client.chat_postMessage(
+                channel=f"@{self.members[first_name+' '+last_name]}", 
+                blocks=block
+            )
+            return None
+        except:
+            print("firstinit_lastname")
+            print(f"@{first_name[0]}{last_name}")
+            self.client.chat_postMessage(
+                channel=f"@{self.members[first_name[0]+last_name]}",
+                blocks=block,
+            )
+            return None
+
     def send_verification_message(self, first_name, last_name, verification_number):
-        verification_message_block = [
+        verification_text_block = [
             {
                 "type": "section",
                 "text": {
@@ -31,7 +48,7 @@ class SlackWrapper:
             {"type": "divider"},
         ]
 
-        verification_number_messsage = [
+        verification_number_block = [
             {
                 "type": "section",
                 "text": {
@@ -41,25 +58,21 @@ class SlackWrapper:
             }
         ]
 
-        try:
-            print("first name")
-            self.client.chat_postMessage(
-                channel=f"@{self.members[first_name+' '+last_name]}", blocks=verification_message_block
-            )
-            self.client.chat_postMessage(
-                channel=f"@{self.members[first_name+' '+last_name]}", blocks=verification_number_messsage
-            )
-            return None
-        except:
-            print("firstinit_lastname")
-            print(f"@{first_name[0]}{last_name}")
-            self.client.chat_postMessage(
-                channel=f"@{self.members[first_name[0]+last_name]}",
-                blocks=verification_message_block,
-            )
-            self.client.chat_postMessage(
-                channel=f"@{self.members[first_name[0]+last_name]}",
-                blocks=verification_number_messsage,
-            )
-            return None
-            
+        self.send_message(first_name, last_name, verification_text_block)
+        self.send_message(first_name, last_name, verification_number_block)
+
+    def send_generic_message(self, first_name, last_name, message):
+        generic_text_block = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        message
+                    ),
+                },
+            },
+            {"type": "divider"},
+        ]
+
+        self.send_message(first_name, last_name, generic_text_block)
