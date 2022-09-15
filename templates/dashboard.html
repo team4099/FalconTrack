@@ -259,6 +259,76 @@
             </div>
         </div>
     </div>
+
+
+
+
+    <div class="container border-b-2 border-gray-800 mb-6 h-[32rem]">
+        <div class="w-1/4 float-left mb-8">
+            <h1 class="text-xl text-white font-semibold mb-2">
+                View attendance
+            </h1>
+            <h2 class="text-md text-gray-500 font-medium pb-6">
+                View and search thru attendance logs.
+            </h2>
+        </div>
+        <div clas="w-3/5 pl-8 float-right">
+            <div class="flex justify-end">
+                <div class="mx-2">
+                    <label for="location_name" class="text-white font-medium">Search</label><br>
+                    <input type="text" id="search_term" placeholder="2022-04-23"
+                        class="w-[18rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 text-md border border-gray-500 px-2" /><br>
+                </div>
+                <button type="submit" id="search-logs" onclick="search_logs()"
+                    class="mx-2 h-10 align-baseline inline-flex ml-2 mt-8 py-2 px-3 text-sm font-medium text-white bg-amber-400 rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-amber-400">
+                    Search
+                    <svg aria-hidden="true" class="ml-2 mt-1 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd"
+                            d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="w-88 h-80 overflow-y-auto relative shadow-md sm:rounded-lg mt-8">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="py-3 px-6 w-10">
+                            Student Name
+                        </th>
+                        <th scope="col" class="py-3 px-6 w-10">
+                            Location
+                        </th>
+                        <th scope="col" class="py-3 px-3 w-10">
+                            Log Time
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="logBody">
+                    {% for log in attendance_logs %}
+                    <tr class="w-full bg-white border-b dark:bg-gray-900 dark:border-gray-700" id="log-{{ log.attendee }}-{{ log.location }}-{{ log.log_time }}">
+                        <td class="py-4 px-3 w-[6rem] h-max border-none pl-6">{{ log.attendee }}
+                        </td>
+                        <td class="py-4 px-3 w-[6rem] h-max border-none">{{ log.location }}
+                        </td>
+                        <td class="py-4 px-3 w-[8rem] h-max border-none">
+                            {{ log.log_time + timezone_offset }}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+
+
+
     <div class="container mb-6 h-96">
         <div class="w-1/4 float-left">
             <h1 class="text-xl text-white font-semibold mb-2">
@@ -286,7 +356,7 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody >
                         {% for student in active_students %}
                         <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
                             <td class="py-4 px-3 w-[5rem] h-max border-none">{{ student.username }}
@@ -312,28 +382,6 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-    <div id="deletion-popup" tabindex="-1"
-        class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full">
-        <div class="relative p-4 w-full max-w-lg h-full md:h-auto">
-            <div class="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 md:p-8">
-                <div class="mb-4 text-sm font-light text-gray-500 dark:text-gray-400">
-                    <h3 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">Are you sure?</h3>
-                    <p id="error" class="text-red-500">
-                    </p>
-                    <p id="deletion">
-                    </p>
-                </div>
-                <div class="justify-between items-center pt-0 space-y-4 sm:flex sm:space-y-0">
-                    <div class="items-center space-y-4 sm:space-x-4 sm:flex sm:space-y-2">
-                        <button id="delete-close-modal" type="button"
-                            class="mt-2 py-2 px-4 w-full text-sm font-medium text-gray-500 bg-white rounded-lg border border-gray-200 sm:w-auto hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-primary-300 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancel</button>
-                        <button id="delete-confirm-button" type="button"
-                            class="mt-2 py-2 px-4 w-full text-sm font-medium text-center text-white rounded-lg bg-red-500 sm:w-auto hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Confirm</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -384,6 +432,19 @@
 </div>
 
 <script>
+    function search_logs(){
+        for (const child of document.getElementById("logBody").children) {
+            console.log(child.id);
+            child.classList.remove("hidden")
+            for (const term of document.getElementById("search_term").value.split(" ")){
+                if (!child.id.toLowerCase().includes(term)){
+                    child.classList.add("hidden")
+                    break
+                }
+            }
+        }
+    }
+
     function update_student(id) {
         var server_data = [
             { "id": id },

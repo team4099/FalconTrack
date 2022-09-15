@@ -330,7 +330,7 @@ def process_login():
                             slack_app.send_generic_message(
                                 name.split(" ")[0],
                                 name.split(" ")[1],
-                                "Ruhroh. Root has been logged into. \n\n Thanks,\nMike",
+                                "Ruhroh. Root has been logged into. \n\nThanks,\nMike",
                             )
                         return jsonify({"action": "logged"})
 
@@ -440,6 +440,7 @@ def dashboard():
                 base=set_base_param(),
                 students=Students.query.all(),
                 locations=Location.query.all(),
+                attendance_logs=AttendanceLog.query.all(),
                 active_students=Students.query.filter_by(checked_in=True),
                 timezone_offset=tzoffset,
             )
