@@ -4,7 +4,7 @@
 
 <div class="mt-10 w-[22rem] h-1/2 mx-auto">
     <div class="">
-        <img src="{{ url_for('static', filename='/svg/logo.svg') }}" class="h-16 mx-auto" alt="4099 Falcon Logo">
+        <img src="{{url_for('static', filename=base['logo'])}}" class="h-16 mx-auto" alt="4099 Falcon Logo">
         <h1 class="text-center text-3xl text-white font-semibold border-t-2 border-gray-600 mt-2 pt-4">
             Login
         </h1>
@@ -23,7 +23,7 @@
         <br>
 
         <button type="" onclick="submit_login()"
-            class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-amber-400 rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-amber-400">
+            class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-[{{ base["color"] }}] rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-[{{ base["color"] }}]">
             Log In
             <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg">

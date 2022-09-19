@@ -172,6 +172,9 @@ def set_base_param():
         "name": "",
         "isLoggedIn": False,
         "isAdmin": False,
+        "app_name": config["app_name"],
+        "logo": config['logo'],
+        "color": config["color"]
     }
     try:
         data["name"] = session["user"]
@@ -188,6 +191,7 @@ def set_base_param():
     except:
         data["isAdmin"] = False
 
+    print(data)
     return data
 
 
