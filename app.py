@@ -50,7 +50,7 @@ db = SQLAlchemy(app)
 
 class Students(db.Model):
     id = db.Column("student_id", db.Integer, primary_key=True)
-    username = db.Column(db.String(20))
+    username = db.Column(db.String(50))
     school_id = db.Column(db.Integer)
     is_admin = db.Column(db.Boolean)
     cur_location = db.Column(db.String(50), nullable=True)
@@ -173,8 +173,8 @@ def set_base_param():
         "isLoggedIn": False,
         "isAdmin": False,
         "app_name": config["app_name"],
-        "logo": config['logo'],
-        "color": config["color"]
+        "logo": config["logo"],
+        "color": config["color"],
     }
     try:
         data["name"] = session["user"]
@@ -726,4 +726,10 @@ if __name__ == "__main__":
         db.session.flush()
         db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
         db.session.commit()
+    # students = [s.rstrip().lower() for s in open("students.txt", "r").readlines()]
+    # passwords = [n for n in open("passwords.txt", "r")]
+    # for i in range(len(students)):
+    #     db.session.flush()
+    #     db.session.add(Students(students[i], int(passwords[i]), False))
+    #     db.session.commit()
     app.run(debug=True, host="0.0.0.0")
