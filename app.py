@@ -191,6 +191,11 @@ def set_base_param():
     return data
 
 
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+
+
 @app.route("/")
 def homepage():
     if "isLoggedIn" in session and session["isLoggedIn"]:
