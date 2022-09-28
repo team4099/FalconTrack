@@ -172,6 +172,9 @@ def set_base_param():
         "name": "",
         "isLoggedIn": False,
         "isAdmin": False,
+        "app_name": config["app_name"],
+        "logo": config['logo'],
+        "color": config["color"]
     }
     try:
         data["name"] = session["user"]
@@ -188,6 +191,7 @@ def set_base_param():
     except:
         data["isAdmin"] = False
 
+    print(data)
     return data
 
 
@@ -331,6 +335,12 @@ def process_login():
                         session["user"] = student.username
                         session["isLoggedIn"] = True
                         session["is_admin"] = student.is_admin
+                        for name in config["root_access"]:
+                            slack_app.send_generic_message(
+                                name.split(" ")[0],
+                                name.split(" ")[1],
+                                "Ruhroh. Root has been logged into. \n\nThanks,\nMike",
+                            )
                         return jsonify({"action": "logged"})
 
                     else:
@@ -439,6 +449,7 @@ def dashboard():
                 base=set_base_param(),
                 students=Students.query.all(),
                 locations=Location.query.all(),
+                attendance_logs=AttendanceLog.query.all(),
                 active_students=Students.query.filter_by(checked_in=True),
                 timezone_offset=tzoffset,
             )

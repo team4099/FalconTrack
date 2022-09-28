@@ -3,5 +3,12 @@
     "base_url": "falcontrackapp.herokuapp.com",
     "rootuser": "root",
     "rootpass": "123456",
-    "timezone": -0
+    "timezone": -0,
+    "root_access": [
+        "pranav karthikeyan",
+        "saraansh wadkar"
+    ],
+    "app_name": "FalconTrack",
+    "logo": "/svg/logo.svg",
+    "color": "#fbbf24"
 }
