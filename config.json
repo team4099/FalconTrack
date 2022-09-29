@@ -1,6 +1,6 @@
 {
     "name": "FalconTrack",
-    "base_url": "falcontrackapp.herokuapp.com",
+    "base_url": "track.team4099.com",
     "rootuser": "root",
     "rootpass": "123456",
     "timezone": -0,
