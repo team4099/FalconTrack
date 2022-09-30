@@ -38,7 +38,7 @@ tzoffset = timedelta(hours=float(config["timezone"]))
 slack_app = SlackWrapper(os.getenv("SLACK_KEY"))
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = "the random string"
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
