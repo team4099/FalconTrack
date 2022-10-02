@@ -449,7 +449,7 @@ def dashboard():
                 title="Dashboard",
                 flash_color=flash_color,
                 base=set_base_param(),
-                students=Students.query.all(),
+                students=Students.query.filter(Students.username != "root"),
                 locations=Location.query.all(),
                 attendance_logs=AttendanceLog.query.all(),
                 active_students=Students.query.filter_by(checked_in=True),
