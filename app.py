@@ -42,7 +42,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
     "postgresql://" + os.getenv("DATABASE_URL").split("://")[1]
 )
 app.config["SECRET_KEY"] = "the random string"
-app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_PERMANENT"] = True
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 QRcode(app)
