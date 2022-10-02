@@ -726,7 +726,7 @@ if __name__ == "__main__":
         db.session.commit()
     if Students.query.filter(Students.username == config["rootuser"]).first() == None:
         db.session.flush()
-        db.session.add(Students(config["rootuser"], int(config["rootpass"]), True))
+        db.session.add(Students(config["rootuser"], int(os.getenv("ROOT_PASS")), True))
         db.session.commit()
     # students = [s.rstrip().lower() for s in open("students.txt", "r").readlines()]
     # passwords = [n for n in open("passwords.txt", "r")]
