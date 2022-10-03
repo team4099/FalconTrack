@@ -250,7 +250,7 @@ def generate():
                     error_catch = False
                     location = request.form["location"]
                     exprdate = int(request.form["exprdate"])
-                    if "online" in location:
+                    if "online" in location.lower():
                         qrcode_range = 100000000
                     else:
                         qrcode_range = request.form["range"]
