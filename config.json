@@ -1,6 +1,6 @@
 {
     "name": "FalconTrack",
-    "base_url": "track.team4099.com",
+    "base_url": "https://track.team4099.com",
     "rootuser": "root",
     "timezone": -0,
     "root_access": [
