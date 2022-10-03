@@ -250,7 +250,7 @@ def generate():
                     error_catch = False
                     location = request.form["location"]
                     exprdate = int(request.form["exprdate"])
-                    if "Online Meeting" in location:
+                    if "online" in location:
                         qrcode_range = 100000000
                     else:
                         qrcode_range = request.form["range"]
