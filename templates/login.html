@@ -23,7 +23,9 @@
         <br>
 
         <button type="" onclick="submit_login()"
-            class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-[{{ base["color"] }}] rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-[{{ base["color"] }}]">
+            class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-[{{ base[" color"] }}]
+            rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-[{{ base["color"]
+            }}]">
             Log In
             <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg">
@@ -96,7 +98,7 @@
                     document.getElementById("verificationModal").classList.remove("hidden")
                 }
                 else if (result["action"] == "logged") {
-                    location.replace("/home")
+                    location.replace("/")
                 }
                 else {
                     document.getElementById("errorMessage").innerText = result["action"]
