@@ -50,7 +50,9 @@
                     class="w-[14rem] h-10 bg-gray-700 text-gray-300 rounded-lg px-2 mb-8 text-sm border border-gray-500"></input>
                 <br>
                 <button type="submit"
-                    class="inline-flex items-center py-2 px-3 text-sm font-medium text-center text-white bg-[{{ base["color"] }}] rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-[{{ base["color"] }}]">
+                    class="inline-flex items-center py-2 px-3 text-sm font-medium text-center text-white bg-[{{ base["
+                    color"] }}] rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300
+                    dark:bg-[{{ base["color"] }}]">
                     Generate
                     <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
                         xmlns="http://www.w3.org/2000/svg">
@@ -83,7 +85,7 @@
     function check_location() {
         var select = document.getElementById("select")
         var select_value = select.options[select.selectedIndex].value
-        if (select_value == "Online Meeting") {
+        if (select_value.includes("online meeting")) {
             document.getElementById("rangeheader").style.display = "none";
             document.getElementById("range").style.display = "none";
             document.getElementById("range").value = 1;

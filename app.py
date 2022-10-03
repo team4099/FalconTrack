@@ -250,7 +250,7 @@ def generate():
                     error_catch = False
                     location = request.form["location"]
                     exprdate = int(request.form["exprdate"])
-                    if "online" in location.lower():
+                    if "online meeting" in location:
                         qrcode_range = 100000000
                     else:
                         qrcode_range = request.form["range"]
@@ -721,9 +721,9 @@ test = []
 
 if __name__ == "__main__":
     db.create_all()
-    if Location.query.filter(Location.name == "Online Meeting").first() == None:
+    if Location.query.filter(Location.name == "online meeting").first() == None:
         db.session.flush()
-        db.session.add(Location("Online Meeting", 39, 49, "root"))
+        db.session.add(Location("online meeting", 39, 49, "root"))
         db.session.commit()
     if Students.query.filter(Students.username == config["rootuser"]).first() == None:
         db.session.flush()
