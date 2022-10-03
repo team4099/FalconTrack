@@ -44,6 +44,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 app.config["SECRET_KEY"] = "the random string"
 app.config["SESSION_PERMANENT"] = True
 app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "None"
 Session(app)
 QRcode(app)
 
