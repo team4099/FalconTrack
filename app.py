@@ -737,4 +737,5 @@ if __name__ == "__main__":
     #     db.session.flush()
     #     db.session.add(Students(students[i], int(passwords[i]), False))
     #     db.session.commit()
+
     app.run(debug=True, host="0.0.0.0")
