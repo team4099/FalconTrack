@@ -398,16 +398,19 @@ def dashboard():
 
                     student_name = request.form["username"]
                     student_id = request.form["studentid"]
-                    db.session.flush()
-                    student = Students(student_name, student_id, is_admin)
 
-                    db.session.add(student)
-                    db.session.commit()
+                    if Students.query.filter(Students.username == student_name).first():
+                        flash(f"{student_name} already exists")
+                        flash_color = "text-red-500"
+                    else:
+                        db.session.flush()
+                        student = Students(student_name, student_id, is_admin)
 
-                    flash(f"{student_name} was successfully added")
-                    flash_color = "text-green-500"
+                        db.session.add(student)
+                        db.session.commit()
 
-                    return redirect(url_for("dashboard"))
+                        flash(f"{student_name} was successfully added")
+                        flash_color = "text-green-500"
             if "location-add" in request.form:
                 error_catch = False
                 if (
