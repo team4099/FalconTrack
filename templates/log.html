@@ -13,7 +13,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 <script>
     function getLocation() {
-
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
                 pos = {
@@ -61,6 +60,11 @@
                     }
                 });
 
+            }, 
+            function(error) {
+                if (error.code == error.PERMISSION_DENIED){
+                    document.getElementById("check_in_out_message").innerText = "Please enable your location for this website."
+                }
             });
         } else {
             document.getElementById("check_in_out_message").innerText = "Please enable your location for this website."
