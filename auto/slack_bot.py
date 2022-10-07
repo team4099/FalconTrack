@@ -14,11 +14,11 @@ class SlackWrapper:
                 pass
 
     def send_message(self, first_name, last_name, block):
+        print(self.members)
         try:
             print("first name")
             self.client.chat_postMessage(
-                channel=f"@{self.members[first_name+' '+last_name]}", 
-                blocks=block
+                channel=f"@{self.members[first_name+' '+last_name]}", blocks=block
             )
             return None
         except:
@@ -67,9 +67,7 @@ class SlackWrapper:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": (
-                        message
-                    ),
+                    "text": (message),
                 },
             },
             {"type": "divider"},
