@@ -41,11 +41,12 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "postgresql://" + os.getenv("DATABASE_URL").split("://")[1]
 )
-app.config["SECRET_KEY"] = "the random string"
+app.config["SECRET_KEY"] = os.getenv("FLASK_HASH")
 app.config["SESSION_PERMANENT"] = True
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
+app.config["SESSION_COOKIE_NAME"] = "falcontrack"
 Session(app)
 QRcode(app)
 
