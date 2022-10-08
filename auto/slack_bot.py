@@ -14,7 +14,6 @@ class SlackWrapper:
                 pass
 
     def send_message(self, first_name, last_name, block):
-        print(self.members)
         try:
             print("first name")
             self.client.chat_postMessage(
