@@ -10,6 +10,7 @@ from flask import (
 )
 from flask_session import Session
 from flask_qrcode import QRcode
+from flask_sslify import SSLify
 from flask_sqlalchemy import SQLAlchemy
 import slack
 from sqlalchemy.dialects.mysql import FLOAT
@@ -47,6 +48,9 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
 app.config["SESSION_COOKIE_NAME"] = "falcontrack"
+if "DYNO" in os.environ:
+    sslify = SSLify(app)
+
 Session(app)
 QRcode(app)
 
