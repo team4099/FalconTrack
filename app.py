@@ -48,8 +48,6 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
 app.config["SESSION_COOKIE_NAME"] = "falcontrack"
-if "DYNO" in os.environ:
-    sslify = SSLify(app)
 
 Session(app)
 QRcode(app)
