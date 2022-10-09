@@ -82,7 +82,7 @@
     function submit_login() {
         var server_data = [
             { "action": "init" },
-            { "username": document.getElementById("username").value },
+            { "username": document.getElementById("username").value.toLowerCase() },
             { "password": document.getElementById("password").value }
         ];
 
