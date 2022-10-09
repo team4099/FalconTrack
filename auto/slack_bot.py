@@ -6,36 +6,28 @@ import json
 class SlackWrapper:
     def __init__(self, api_key):
         self.client = WebClient(token=api_key)
+        self.members = {}
+        for member in self.client.users_list()["members"]:
+            try:
+                self.members[member["real_name"].lower()] = member["id"]
+            except:
+                pass
 
     def send_message(self, first_name, last_name, block):
         try:
             print("first name")
             self.client.chat_postMessage(
-                channel=self.client.users_lookupByEmail(
-                    email=f"{first_name}@team4099.com"
-                )["user"]["id"],
-                blocks=block,
+                channel=f"@{self.members[first_name+' '+last_name]}", blocks=block
             )
             return None
         except:
-            try:
-                print("flast_name")
-                self.client.chat_postMessage(
-                    channel=self.client.users_lookupByEmail(
-                        email=f"{first_name[0]}{last_name}@team4099.com"
-                    )["user"]["id"],
-                    blocks=block,
-                )
-                return None
-            except:
-                print("flast_name1")
-                self.client.chat_postMessage(
-                    channel=self.client.users_lookupByEmail(
-                        email=f"{first_name[0]}{last_name}1@team4099.com"
-                    )["user"]["id"],
-                    blocks=block,
-                )
-                return None
+            print("firstinit_lastname")
+            print(f"@{first_name[0]}{last_name}")
+            self.client.chat_postMessage(
+                channel=f"@{self.members[first_name[0]+last_name]}",
+                blocks=block,
+            )
+            return None
 
     def send_verification_message(self, first_name, last_name, verification_number):
         verification_text_block = [
