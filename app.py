@@ -44,17 +44,16 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 )
 app.config["SECRET_KEY"] = os.getenv("FLASK_HASH")
 app.config["SESSION_PERMANENT"] = True
-app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_TYPE"] = "sqlalchemy"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
 app.config["SESSION_COOKIE_NAME"] = "falcontrack"
+db = app.config["SESSION_SQLALCHEMY"] = SQLAlchemy(app)
 if "DYNO" in os.environ:
     sslify = SSLify(app)
 
 Session(app)
 QRcode(app)
-
-db = SQLAlchemy(app)
 
 
 class Students(db.Model):
