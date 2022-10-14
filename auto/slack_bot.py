@@ -17,8 +17,7 @@ class SlackWrapper:
         try:
             print("first name")
             self.client.chat_postMessage(
-                channel=f"@{self.members[first_name+' '+last_name]}", 
-                blocks=block
+                channel=f"@{self.members[first_name+' '+last_name]}", blocks=block
             )
             return None
         except:
@@ -38,7 +37,6 @@ class SlackWrapper:
                     "type": "mrkdwn",
                     "text": (
                         "*hey is this you?*\n\n"
-                        "my name is FalconTrack, and i am the fastest bot alive."
                         " i recently discovered that a new person was trying to sign"
                         " into an account with permissions on another level."
                         " is this you? pls enter the 6 digit code below into FalconTrack."
@@ -67,9 +65,7 @@ class SlackWrapper:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": (
-                        message
-                    ),
+                    "text": (message),
                 },
             },
             {"type": "divider"},

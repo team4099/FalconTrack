@@ -16,11 +16,6 @@
     {% for cdn in base["cdn"] %}
     <script src="{{ cdn }}"></script>
     {% endfor %}
-    <script>
-        if (location.protocol !== 'https:' && !window.location.href.includes("localhost")) {
-            location.replace(`https:${location.href.substring(location.protocol.length)}`);
-        }
-    </script>
 
     <title>
         {% if title %}
@@ -35,9 +30,9 @@
     <nav class="border-gray-200 px-2 sm:px-4 py-2.5 rounded bg-[#161b22]">
         <div class="container flex flex-wrap justify-between items-center mx-auto">
             <a href="/" class="flex items-center">
-                <img src="{{url_for('static', filename=base['logo'])}}" class="mr-3 h-6 sm:h-9"
-                    alt="4099 Falcon Logo">
-                <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">{{ base["app_name"] }}</span>
+                <img src="{{url_for('static', filename=base['logo'])}}" class="mr-3 h-6 sm:h-9" alt="4099 Falcon Logo">
+                <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">{{ base["app_name"]
+                    }}</span>
             </a>
             <button data-collapse-toggle="navbar-default" type="button"
                 class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
@@ -97,7 +92,7 @@
                     <li>
                         <a href="/login">
                             <button
-                                class="text-white bg-[{{ base["color"] }}] font-semibold rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
+                                class="text-white bg-[{{ base['color'] }}] font-semibold rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center"
                                 type="button"><span class="px-2">Login</span></button>
                         </a>
                     </li>
