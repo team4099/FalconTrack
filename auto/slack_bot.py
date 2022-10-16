@@ -55,6 +55,7 @@ class SlackWrapper:
                 },
             }
         ]
+        print(first_name, last_name, verification_number)
 
         self.send_message(first_name, last_name, verification_text_block)
         self.send_message(first_name, last_name, verification_number_block)
