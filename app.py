@@ -369,7 +369,7 @@ def process_login():
                 return jsonify({"action": "Incorrect username or password"})
 
     elif login_info[0]["action"] == "verification":
-        name = login_info[2]["username"]
+        name = login_info[2]["username"].lower()
         student = Students.query.filter(Students.username.contains(name)).first()
 
         if login_info[1]["code"] == str(session["verification_number"]):
