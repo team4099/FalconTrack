@@ -608,7 +608,8 @@ def process_attendance():
                         coords["lng"],
                     ],
                 )
-                dist = get_distance(lat_1, lng_1, lat_2, lng_2)
+                # dist = get_distance(lat_1, lng_1, lat_2, lng_2)
+                dist = 100
             else:
                 return jsonify({"action_code": "203"})
 
