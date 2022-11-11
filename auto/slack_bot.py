@@ -30,35 +30,20 @@ class SlackWrapper:
             return None
 
     def send_verification_message(self, first_name, last_name, verification_number):
-        verification_text_block = [
+        verification_block = [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        "*hey is this you?*\n\n"
-                        " i recently discovered that a new person was trying to sign"
-                        " into an account with permissions on another level."
-                        " is this you? pls enter the 6 digit code below into FalconTrack."
+                        f"*FalconTrack Code*: {verification_number}"
                     ),
-                },
-            },
-            {"type": "divider"},
-        ]
-
-        verification_number_block = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (f"*{verification_number}*"),
                 },
             }
         ]
         print(first_name, last_name, verification_number)
 
-        self.send_message(first_name, last_name, verification_text_block)
-        self.send_message(first_name, last_name, verification_number_block)
+        self.send_message(first_name, last_name, verification_block)
 
     def send_generic_message(self, first_name, last_name, message):
         generic_text_block = [
