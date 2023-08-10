@@ -1,11 +1,12 @@
-import sys
+import ssl
+import certifi
 from slack_sdk import WebClient
-import json
 
 
 class SlackWrapper:
     def __init__(self, api_key):
-        self.client = WebClient(token=api_key)
+        # Bypass SSL certificate not being verified
+        self.client = WebClient(token=api_key, ssl=ssl.create_default_context(cafile=certifi.where()))
         self.members = {}
         for member in self.client.users_list()["members"]:
             try:
@@ -15,13 +16,11 @@ class SlackWrapper:
 
     def send_message(self, first_name, last_name, block):
         try:
-            print("first name")
             self.client.chat_postMessage(
                 channel=f"@{self.members[first_name+' '+last_name]}", blocks=block
             )
             return None
         except:
-            print("firstinit_lastname")
             print(f"@{first_name[0]}{last_name}")
             self.client.chat_postMessage(
                 channel=f"@{self.members[first_name[0]+last_name]}",
@@ -41,7 +40,6 @@ class SlackWrapper:
                 },
             }
         ]
-        print(first_name, last_name, verification_number)
 
         self.send_message(first_name, last_name, verification_block)
 

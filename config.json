@@ -9,5 +9,23 @@
     ],
     "app_name": "FalconTrack",
     "logo": "/svg/logo.svg",
-    "color": "#fbbf24"
+    "color": "#fbbf24",
+    "subteam_colors": {
+        "Misc": [0.75, 0.75, 0.75],
+        "Mechanical": [1, 0.4118, 0.7059],
+        "Design": [0.749, 0.8824, 0.9647],
+        "Controls": [1, 0.898, 0.6],
+        "Strategy": [0.7137, 0.8431, 0.6588],
+        "Business": [0.7059, 0.6549, 0.8392],
+        "Whole Team": [0.9373, 0.6824, 0.0157]
+    },
+    "subteam_colors_in_hex": {
+        "Misc": "#cccccc",
+        "Mechanical": "#ff69b4",
+        "Design": "#bfe1f6",
+        "Controls": "#ffe599",
+        "Strategy": "#b6d7a8",
+        "Business": "#b4a7d6",
+        "Whole Team": "#efae04"
+    }
 }

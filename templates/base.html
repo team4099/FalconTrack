@@ -10,19 +10,24 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="-1" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              fontFamily: {
+                sans: ['Inter']
+              }
+            }
+          }
+        }
+    </script>
     <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.2/dist/flowbite.min.css" />
-    <script src="{{url_for('static', filename='/js/qrcode.min.js')}}"></script>
-    {% for cdn in base["cdn"] %}
-    <script src="{{ cdn }}"></script>
-    {% endfor %}
-
-    <title>
-        {% if title %}
-        {{ title }}
-        {% else %} {{ base["app_name"] }}
-        {% endif %}
-    </title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title> {{ title }} </title>
 </head>
 
 <body class="bg-[#0D1117]">
@@ -31,8 +36,7 @@
         <div class="container flex flex-wrap justify-between items-center mx-auto">
             <a href="/" class="flex items-center">
                 <img src="{{url_for('static', filename=base['logo'])}}" class="mr-3 h-6 sm:h-9" alt="4099 Falcon Logo">
-                <span class="self-center text-2xl font-semibold whitespace-nowrap text-white">{{ base["app_name"]
-                    }}</span>
+                <span class="self-center text-xl lg:text-2xl font-semibold whitespace-nowrap text-white"> FalconTrack </span>
             </a>
             <button data-collapse-toggle="navbar-default" type="button"
                 class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
@@ -49,23 +53,16 @@
                 <ul
                     class="flex flex-col p-4 mt-4 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:text-md md:font-medium md:border-0">
 
-                    {% if base["isLoggedIn"] %}
+                    {% if base["logged_in"] %}
                     <li>
                         <a href="/"
                             class="mt-2 block py-2 pr-4 pl-3 text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#efae04] md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-md"
                             aria-current="page"><span class="">Home</span></a>
                     </li>
-                    {% if base["isAdmin"] %}
-                    <li>
-                        <a href="/generate"
-                            class="mt-2 block py-2 pr-4 pl-3 text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-[#efae04] md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent text-md">Generate
-                            QRCode</a>
-                    </li>
-                    {% endif %}
                     <li>
                         <button id="dropdownDefault" data-dropdown-toggle="dropdown"
                             class="text-gray-400 focus:ring-4 font-semibold rounded-full text-sm px-4 py-2.5 text-center inline-flex items-center border-2 border-gray-500"
-                            type="button">{{ base["name"] }} <svg class="ml-2 w-4 h-4" aria-hidden="true" fill="none"
+                            type="button"> {{ base['name'] }} <svg class="ml-2 w-4 h-4" aria-hidden="true" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7"></path>
@@ -74,12 +71,6 @@
                         <div id="dropdown"
                             class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700">
                             <ul class="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefault">
-                                {% if base["isAdmin"] %}
-                                <li>
-                                    <a href="/dashboard"
-                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
-                                </li>
-                                {% endif %}
                                 <li>
                                     <a href="/logout"
                                         class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Sign
@@ -102,7 +93,7 @@
         </div>
     </nav>
 
-    <div class="h-100 w-full flex items-center justify-center font-sans">
+    <div class="h-full w-full flex items-center justify-center lg:items-start lg:justify-start font-sans">
         {% block content %}
 
         {% endblock content %}

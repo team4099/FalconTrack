@@ -1,749 +1,271 @@
-from flask import (
-    Flask,
-    request,
-    flash,
-    url_for,
-    redirect,
-    render_template,
-    session,
-    jsonify,
-)
-from flask_session import Session
-from flask_qrcode import QRcode
-from flask_sslify import SSLify
-from flask_sqlalchemy import SQLAlchemy
-import slack
-from sqlalchemy.dialects.mysql import FLOAT
-from sqlalchemy import Enum
-import os
-from dotenv import load_dotenv
 import json
-import enum
-from typing import List, Set, Dict, Tuple, Optional
-from datetime import datetime, timedelta, timezone
-import math
+import os
+import time
+from functools import cache
+from random import randrange
+
+from certifi import where
+from dotenv import load_dotenv
+from flask import Flask, jsonify, render_template, redirect, request, session, url_for
+from flask_session import Session
+from googleapiclient.discovery import build
+from pymongo.mongo_client import MongoClient
+
 from auto.slack_bot import SlackWrapper
-import random
-from urllib.parse import quote
-import pytz
 
 load_dotenv()
 
-with open("config.json", "r") as json_file:
+with open("config.json") as json_file:
     config = json.load(json_file)
 
-base_url = config["base_url"]
+ATTENDANCE_WEIGHTS = {"P": 1, "X": 0.75, "L": 0.75, "O": 1, "A": 0}
+ATTENDANCE_SHORTHAND = {"P": "Attended", "X": "Excused", "L": "Late", "A": "Absent", "O": "Attended"}
+ATTENDANCE_REQUIREMENT = 0.6  # As a percentage
+SPREADSHEET_ID = "1u-GbQA4ZaARBbzUWO6t2a_7gC-GtSlHuYU2GxxO2pD8"
+SHEET_NAME = "Test of Attendance Sheet"
+COLOR_DIFFERENCE_TOLERANCE = 0.05
 
-tzoffset = timedelta(hours=float(config["timezone"]))
-
+# Set up Mongo DB, Slack, the Google client that interfaces with the spreadsheet and Flask
 slack_app = SlackWrapper(os.getenv("SLACK_KEY"))
+service = build(
+    "sheets",
+    "v4",
+    developerKey=os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+)
+
+client = MongoClient(
+    (
+        f"mongodb+srv://swadkar1:{os.getenv('MONGODB_PASSWORD')}@falcontrack.snv7mpp.mongodb.net"
+        f"/?retryWrites=true&w=majority"
+    ),
+    tlsCAFile=where()
+)
+database = client.get_database("falcon-track")
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "postgresql://" + os.getenv("DATABASE_URL").split("://")[1]
-)
+
+# Configure the app
 app.config["SECRET_KEY"] = os.getenv("FLASK_HASH")
 app.config["SESSION_PERMANENT"] = True
-app.config["SESSION_TYPE"] = "sqlalchemy"
+app.config["SESSION_TYPE"] = "mongodb"
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "None"
 app.config["SESSION_COOKIE_NAME"] = "falcontrack"
-db = app.config["SESSION_SQLALCHEMY"] = SQLAlchemy(app)
-if "DYNO" in os.environ:
-    sslify = SSLify(app)
+app.config["SESSION_MONGODB"] = client
+app.config["SESSION_MONGODB_DB"] = "falcon-track"
+app.config["SESSION_MONGODB_COLLECTION"] = "sessions"
 
+base = {
+    "logged_in": False,
+    "is_admin": False,
+    "logo": config["logo"],
+    "color": config["color"]
+}
+
+# Start the session to keep the user logged in
 Session(app)
-QRcode(app)
 
 
-class Students(db.Model):
-    id = db.Column("student_id", db.Integer, primary_key=True)
-    username = db.Column(db.String(50))
-    school_id = db.Column(db.Integer)
-    is_admin = db.Column(db.Boolean)
-    cur_location = db.Column(db.String(50), nullable=True)
-    last_logged_attendance_time = db.Column(db.DateTime(), nullable=True)
-    hours_logged = db.Column(db.Integer)
-    checked_in = db.Column(db.Boolean)
-
-    def __init__(
-        self,
-        username: str,
-        school_id: int,
-        is_admin: bool,
-        cur_location: Optional[str] = None,
-        last_logged_attendance_time: Optional[datetime] = datetime.now(),
-        hours_logged: Optional[int] = 0,
-        checked_in: Optional[bool] = False,
-    ):
-        """
-        Initialize a student object with their username, current_location (None on initialization), the last time their attendance was logged at any location (none on init),
-        total number of hours logged (0 on init).
-
-        @param username: Unique username of a student.
-        @param school_id: Unique school id of a student.
-        @param is_admin: Boolean to tell backend if the student should be given admin permissions or not.
-        @param cur_location: Name of the build space/designated workspace location of a student if the student is checked in.
-        @param last_logged_attendance_time: Last time a student checked in/out of a location.
-        @param hours_logged: Total number of attendance hours logged.
-        """
-        self.username = username
-        self.school_id = school_id
-        self.is_admin = is_admin
-        if cur_location:
-            self.cur_location = cur_location
-        else:
-            self.cur_location = None
-        self.last_logged_attendance_time = last_logged_attendance_time
-        self.hours_logged = hours_logged
-        self.checked_in = checked_in
+# Utility functions
+def _matches(l1: list, l2: list) -> bool:
+    """Compares two lists containing slightly differing floats to see if they're a match."""
+    return all(round(abs(value1 - value2), 4) <= COLOR_DIFFERENCE_TOLERANCE for value1, value2 in zip(l1, l2))
 
 
-class QRcode(db.Model):
-    id = db.Column("qrcode_id", db.Integer, primary_key=True)
-    location = db.Column(db.String(50))
-    expr_date = db.Column(db.DateTime(), nullable=True)
-    range_of_qrcode = db.Column(db.Integer)
-    uses = db.Column(db.Integer)
-
-    def __init__(
-        self,
-        location: str,
-        expr_date: int,
-        range_of_qrcode: Optional[int] = 300,
-    ):
-        cur_time = datetime.now()
-        cur_time = cur_time - timedelta(microseconds=cur_time.microsecond)
-        date_obj = datetime.strptime(str(expr_date), "%H")
-        delta = timedelta(hours=date_obj.hour)
-
-        self.location = location
-        if expr_date != 0:
-            self.expr_date = cur_time + delta
-        self.range_of_qrcode = range_of_qrcode
-        self.uses = 0
+def get_ttl_hash(seconds=60):
+    """Return the same value within `seconds` time period"""
+    return round(time.time() / seconds)
 
 
-class Location(db.Model):
-    id = db.Column("loc_id", db.Integer, primary_key=True)
-    name = db.Column(db.String(50))
-    latitude = db.Column(FLOAT(precision=32, scale=10))
-    longitude = db.Column(FLOAT(precision=32, scale=10))
-    last_edited_by = db.Column(db.String(50))
-    last_edited_on = db.Column(db.DateTime(), nullable=True)
-    created_on = db.Column(db.DateTime(), nullable=True)
-
-    def __init__(
-        self,
-        name: str,
-        latitude: float,
-        longitude: float,
-        created_by: str,
-    ):
-        self.name = name
-        self.latitude = latitude
-        self.longitude = longitude
-        self.last_edited_by = created_by
-        created_on = datetime.now()
-        self.created_on = created_on - timedelta(microseconds=created_on.microsecond)
-        last_edited_on = datetime.now()
-        self.last_edited_on = last_edited_on - timedelta(
-            microseconds=last_edited_on.microsecond
-        )
-
-
-class AttendanceLog(db.Model):
-    id = db.Column("log_id", db.Integer, primary_key=True)
-    log_time = db.Column(db.DateTime())
-    location = db.Column(db.String(50))
-    attendee = db.Column(db.String(50))
-
-    def __init__(
-        self,
-        name: str,
-        location: str,
-        log_time: Optional[datetime] = datetime.now(),
-    ):
-        self.log_time = log_time
-        self.attendee = name
-        self.location = location
-
-
-def set_base_param():
+def update_base_params() -> dict:
+    """Updates the base parameters used by FalconTrack."""
     data = {
-        "cdn": [
-            "https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.min.js",
-            "https://unpkg.com/flowbite@1.5.2/dist/datepicker.js",
-            "https://unpkg.com/flowbite@1.5.2/dist/flowbite.js",
-            "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js",
-        ],
         "name": "",
-        "isLoggedIn": False,
-        "isAdmin": False,
-        "app_name": config["app_name"],
+        "logged_in": False,
+        "is_admin": False,
         "logo": config["logo"],
-        "color": config["color"],
+        "color": config["color"]
     }
+
     try:
         data["name"] = session["user"]
-    except:
+    except KeyError:
         data["name"] = ""
 
     try:
-        data["isLoggedIn"] = session["user"] != None
-    except:
-        data["isLoggedIn"] = False
+        data["logged_in"] = session["user"] is not None
+    except KeyError:
+        data["logged_in"] = False
 
     try:
-        data["isAdmin"] = session["is_admin"]
-    except:
-        data["isAdmin"] = False
+        data["is_admin"] = session["is_admin"]
+    except KeyError:
+        data["is_admin"] = False
 
-    print(data)
     return data
 
 
-@app.before_request
-def make_session_permanent():
-    session.permanent = True
-    app.permanent_session_lifetime = timedelta(weeks=52)
+@cache
+def _meeting_list(ttl_hash=None) -> dict:
+    """Returns a dictionary containing the meeting name along with the subteam and order in the list of meetings."""
+    spreadsheet_data = service.spreadsheets().get(
+        spreadsheetId=SPREADSHEET_ID,
+        ranges=SHEET_NAME,
+        includeGridData=True
+    ).execute()
+    meetings_to_subteams = {}
+
+    for idx, value in enumerate(spreadsheet_data["sheets"][0]["data"][0]["rowData"][0]["values"][5:], start=5):
+        rgb_values = [round(rgb, 4) for rgb in value["effectiveFormat"]["backgroundColor"].values()]
+        subteam = next(
+            subteam_name for subteam_name, colors in config["subteam_colors"].items() if _matches(colors, rgb_values)
+        )
+
+        meetings_to_subteams[value["formattedValue"]] = {
+            "subteam": subteam,
+            "index": idx
+        }
+
+    return meetings_to_subteams
+
+
+@cache
+def meeting_attendance(name: str, ttl_hash=None) -> tuple[dict, dict]:
+    """Returns a dictionary containing the meeting name and whether the student mentioned was present."""
+    all_meetings = _meeting_list(ttl_hash)
+    spreadsheet_data = service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range=SHEET_NAME
+    ).execute()
+
+    student_attendance = next(row for row in spreadsheet_data["values"] if row[0].lower() == name)
+    return (
+        all_meetings,
+        {
+            meeting_name: student_attendance[idx]
+            for meeting_name, meeting_info in all_meetings.items()
+            if (idx := meeting_info["index"]) < len(student_attendance) and student_attendance[idx]
+        }
+    )
+
+
+@cache
+def overall_attendance(name: str, ttl_hash=None) -> tuple[dict, dict, tuple[float, float]]:
+    """Calculates the attendance of a student and returns their technical and operational attendance %s."""
+    all_meetings, attendance_by_meeting = meeting_attendance(name, ttl_hash)
+    technical_attendance = []
+    operational_attendance = []
+
+    for meeting_name, attendance in attendance_by_meeting.items():
+        if meeting_name.startswith("T"):
+            technical_attendance.append(ATTENDANCE_WEIGHTS[attendance])
+        elif meeting_name.startswith("O"):
+            operational_attendance.append(ATTENDANCE_WEIGHTS[attendance])
+
+    return (
+        all_meetings,
+        attendance_by_meeting,
+        (
+            sum(technical_attendance) / (len(technical_attendance) or 1),
+            sum(operational_attendance) / (len(operational_attendance) or 1),
+        )
+    )
 
 
 @app.route("/")
-def homepage():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        students = Students.query.all()
-        locations = set()
-        active_students = set()
-        for student in students:
-            if student.checked_in:
-                active_students.add(student)
-                locations.add(
-                    Location.query.filter_by(name=student.cur_location).first()
-                )
-        return render_template(
-            "index.html",
-            title="Home",
-            base=set_base_param(),
-            flash_color="text-white",
-            locations=locations,
-            active_students=active_students,
-            timezone_offset=tzoffset,
+def home() -> str:
+    base_params = update_base_params()
+    all_meetings, attendance, (tech_attendance, op_attendance) = overall_attendance(base_params["name"], get_ttl_hash())
+
+    # Filter meetings to display meetings that line up with the students' subteams
+    student_info = database.get_collection("students").find_one(
+        {"name": base_params["name"]}
+    )
+    tech_subteam, op_subteam = (student_info["tech_subteam"], student_info["op_subteam"])
+    filtered_meetings = {
+        meeting_name: meeting_info
+        for meeting_name, meeting_info in all_meetings.items()
+        if (
+            meeting_info["subteam"] in {tech_subteam, op_subteam, "Whole Team"}
+            or attendance.get(meeting_name, "") == "P"
         )
-    return redirect(url_for("login"))
+    }
+
+    # Create a list containing the past meetings the student should have attended
+    past_meetings = [
+        {
+            "name": meeting_name.replace("T -", "").replace("O -", "").strip(),
+            "subteam": meeting_info["subteam"],
+            "subteam_color": config["subteam_colors_in_hex"][meeting_info["subteam"]],
+            "attended": attendance.get(meeting_name, "") == "P",
+            "attendance_written": ATTENDANCE_SHORTHAND[attendance.get(meeting_name, "A")]
+        }
+        for meeting_name, meeting_info in list(filtered_meetings.items())[-4:][::-1]   # Grab last 5 meetings
+    ]
+
+    return render_template(
+        "index.html",
+        title="Home",
+        base=update_base_params(),
+        past_meetings=past_meetings,
+        tech_attendance=round(tech_attendance, 3),
+        op_attendance=round(op_attendance, 3),
+        attendance_requirement=ATTENDANCE_REQUIREMENT,
+    )
 
 
-@app.route("/generate", methods=["GET", "POST"])
-def generate():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if session["is_admin"]:
-            if request.method == "POST":
-                if (
-                    not request.form["location"]
-                    or not request.form["exprdate"]
-                    or not request.form["range"]
-                ):
-                    flash("Please fill out all fields.")
-                    return render_template(
-                        "generate.html",
-                        title="Generate QR Code",
-                        locations=Location.query.all(),
-                        url="Failed to generate QRcode",
-                        flash_color="text-red-500",
-                        base=set_base_param(),
-                    )
-                else:
-                    error_catch = False
-                    location = request.form["location"]
-                    exprdate = int(request.form["exprdate"])
-                    if "online meeting" in location:
-                        qrcode_range = 100000000
-                    else:
-                        qrcode_range = request.form["range"]
-                    try:
-                        qrcode_range = int(qrcode_range)
-                        if qrcode_range < 300:
-                            flash("Range is less than 300 ft.")
-                            error_catch = True
-                    except ValueError:
-                        flash("Range is not a number.")
-                        error_catch = True
-
-                    if error_catch:
-                        return render_template(
-                            "generate.html",
-                            title="Generate QR Code",
-                            locations=Location.query.all(),
-                            url="Failed to generate QRcode",
-                            flash_color="text-red-500",
-                            base=set_base_param(),
-                        )
-
-                    qrcode = QRcode(location, exprdate, qrcode_range)
-                    db.session.flush()
-                    db.session.add(qrcode)
-                    db.session.commit()
-
-                    fields = {
-                        "encoded": f"{base_url}/attendance?id={qrcode.id}&loc={quote(location)}"
-                    }
-                    flash("QRcode successfully created.")
-                    return render_template(
-                        "generate.html",
-                        title="Generate QR Code",
-                        locations=Location.query.all(),
-                        url=fields["encoded"],
-                        flash_color="text-green-500",
-                        base=set_base_param(),
-                        **fields,
-                    )
-
-            else:
-                return render_template(
-                    "generate.html",
-                    title="Generate QR Code",
-                    locations=Location.query.all(),
-                    base=set_base_param(),
-                )
-        return redirect(url_for("error"))
-    return redirect(url_for("login"))
-
-
-@app.route("/logout", methods=["GET"])
-def logout():
-    session["user"] = None
-    session["isLoggedIn"] = False
-    session["is_admin"] = False
-    return redirect(url_for("homepage"))
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
+@app.route("/login")
+def login() -> str:
     return render_template(
         "login.html",
-        title="Home",
-        base=set_base_param(),
-        from_attendance=request.args.get("from_attendance"),
-        id=request.args.get("id"),
-        loc=request.args.get("location"),
+        title="Login",
+        base=update_base_params()
     )
 
 
 @app.route("/process_login", methods=["POST"])
 def process_login():
     login_info = request.get_json()
+
     if login_info[0]["action"] == "init":
-        if not login_info[1]["username"] or not login_info[2]["password"]:
-            return jsonify({"action": "Enter all info"})
+        if not login_info[1]["username"]:
+            return jsonify({"action": "Enter your username"})
         else:
             name = login_info[1]["username"]
-            student = Students.query.filter(Students.username.contains(name)).first()
+            student = next(student for student in database.students.find() if name in student["name"])
+
             if student is not None:
-                if str(student.school_id) == login_info[2]["password"]:
-                    if name == "root":
-                        session["user"] = student.username
-                        session["isLoggedIn"] = True
-                        session["is_admin"] = student.is_admin
-                        for name in config["root_access"]:
-                            slack_app.send_generic_message(
-                                name.split(" ")[0],
-                                name.split(" ")[1],
-                                "Ruhroh. Root has been logged into. \n\nThanks,\nMike",
-                            )
-                        return jsonify({"action": "logged"})
-
-                    else:
-                        print(student.username)
-                        session["verification_number"] = random.randrange(
-                            100000, 999999
-                        )
-                        slack_app.send_verification_message(
-                            student.username.split(" ")[0],
-                            student.username.split(" ")[1],
-                            session["verification_number"],
-                        )
-                        return jsonify({"action": "verify"})
-                else:
-                    return jsonify({"action": "Incorrect username or password"})
+                session["verification_number"] = randrange(
+                    100000, 999999
+                )
+                slack_app.send_verification_message(
+                    *student["name"].split(),
+                    session["verification_number"],
+                )
+                return jsonify({"action": "verify"})
             else:
-                return jsonify({"action": "Incorrect username or password"})
-
+                return jsonify({"action": "Incorrect username"})
     elif login_info[0]["action"] == "verification":
         name = login_info[2]["username"].lower()
-        student = Students.query.filter(Students.username.contains(name)).first()
+        student = next(student for student in database.students.find() if name in student["name"])
 
         if login_info[1]["code"] == str(session["verification_number"]):
-            session["user"] = student.username
-            session["isLoggedIn"] = True
-            session["is_admin"] = student.is_admin
+            session["user"] = student["name"]
+            session["logged_in"] = True
+            session["is_admin"] = student["is_admin"]
             return jsonify({"action": "logged"})
         else:
             session["user"] = None
             return jsonify({"action": "Incorrect verification number"})
 
 
-@app.route("/dashboard", methods=["GET", "POST"])
-def dashboard():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        flash_color = "text-green-500"
-        if request.method == "POST":
-            if "student-add" in request.form:
-                if not request.form["username"] or not request.form["studentid"]:
-                    flash("Please enter all the fields")
-                    flash_color = "text-red-500"
-                else:
-                    try:
-                        is_admin = (
-                            request.form["student_type"] == "admin"
-                            or request.form["student_type"] == "root"
-                        )
-                    except KeyError:
-                        is_admin = False
-
-                    student_name = request.form["username"]
-                    student_id = request.form["studentid"]
-
-                    if Students.query.filter(Students.username == student_name).first():
-                        flash(f"{student_name} already exists")
-                        flash_color = "text-red-500"
-                    else:
-                        db.session.flush()
-                        student = Students(student_name, student_id, is_admin)
-
-                        db.session.add(student)
-                        db.session.commit()
-
-                        flash(f"{student_name} was successfully added")
-                        flash_color = "text-green-500"
-            if "location-add" in request.form:
-                error_catch = False
-                if (
-                    not request.form["location_name"]
-                    or not request.form["lat"]
-                    or not request.form["long"]
-                ):
-                    flash("Please enter all location fields")
-                    flash_color = "text-red-500"
-                else:
-                    name = request.form["location_name"]
-                    try:
-                        latitude = float(request.form["lat"])
-                        longitude = float(request.form["long"])
-                    except ValueError:
-                        flash("Latitude/Longitude needs to be a number")
-                        flash_color = "text-red-500"
-                        error_catch = True
-
-                    if Location.query.filter_by(name=name).first() is not None and not (
-                        error_catch
-                    ):
-                        flash("Location already exists")
-                        flash_color = "text-red-500"
-                        error_catch = True
-                    else:
-                        if not (error_catch):
-                            db.session.flush()
-                            new_loc = Location(
-                                name, latitude, longitude, session["user"]
-                            )
-
-                            db.session.add(new_loc)
-                            db.session.commit()
-
-                            flash(f"{name} was successfully added as a location")
-                            flash_color = "text-green-500"
-                            return redirect(url_for("dashboard"))
-        if Students.query.filter_by(username=session["user"]).first().is_admin == True:
-            return render_template(
-                "dashboard.html",
-                title="Dashboard",
-                flash_color=flash_color,
-                base=set_base_param(),
-                students=Students.query.filter(Students.username != "root"),
-                locations=Location.query.all(),
-                attendance_logs=AttendanceLog.query.all(),
-                active_students=Students.query.filter_by(checked_in=True),
-                timezone_offset=tzoffset,
-            )
-    return redirect(url_for("error"))
-
-
-# @app.route("/add_student", methods=["POST"])
-# def add_student():
-#     if "isLoggedIn" in session and session["isLoggedIn"]:
-#         if session["is_admin"]:
-#             pass
-
-#     db.session.flush()
-#     student_data = request.get_json()
-
-#     print(student_data)
-
-#     student = Students(
-#         username=student_data["username"],
-#         school_id=student_data["school_id"],
-#         is_admin=(student_data["type"] != "student"),
-#     )
-
-#     db.session.add(student)
-
-#     db.session.commit()
-
-#     return jsonify({"action": "added"})
-
-
-@app.route("/process_student_change", methods=["POST", "GET"])
-def process_student_change():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if session["is_admin"]:
-            if request.method == "POST":
-                db.session.flush()
-                student_data = request.get_json()
-
-                student_edit = Students.query.filter_by(
-                    id=student_data[0]["id"]
-                ).first()
-                if " " in student_data[1]["username"]:
-                    student_edit.username = student_data[1]["username"]
-
-                student_edit.school_id = student_data[2]["school_id"]
-
-                if student_data[3]["is_admin"] == "student":
-                    student_edit.is_admin = False
-                else:
-                    student_edit.is_admin = True
-
-                db.session.commit()
-
-                return jsonify({"action_code": "200"})
-    else:
-        return redirect(url_for("error"))
-
-
-@app.route("/process_location_change", methods=["POST"])
-def process_location_change():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if request.method == "POST":
-            db.session.flush()
-            location_data = request.get_json()
-
-            location_edit = Location.query.filter_by(id=location_data[0]["id"]).first()
-            location_edit.name = location_data[1]["name"]
-            location_edit.latitude = float(location_data[2]["lat"])
-            location_edit.longitude = float(location_data[3]["long"])
-            location_edit.last_edited_on = datetime.fromtimestamp(
-                int(location_data[4]["current_time"])
-            )
-            location_edit.last_edited_by = session["user"]
-
-            db.session.commit()
-
-            return jsonify({"action_code": "200"})
-    else:
-        return redirect(url_for("error"))
-
-
-@app.route("/error")
-def error():
-    return render_template(
-        "403.html", title="403 - Access Denied", base=set_base_param()
-    )
-
-
-@app.errorhandler(404)
-def page_not_found(e):
-    # note that we set the 404 status explicitly
-    return render_template(
-        "404.html", title="404 - Page Not Found", base=set_base_param()
-    )
-
-
-@app.errorhandler(500)
-def page_not_found(e):
-    # note that we set the 404 status explicitly
-    return render_template(
-        "500.html", title="500 - Internal Server Error", base=set_base_param()
-    )
-
-
-@app.route("/add_attendance", methods=["POST"])
-def process_attendance():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        flash_color = "text-white"
-        student = Students.query.filter_by(username=session["user"]).first()
-        if student != None:
-            check_in_button_text = "Check Out" if student.checked_in else "Check In"
-        data = request.get_json()
-        id = data["id"]
-        location_name = data["loc"]
-        coords = data["location"]
-        if id is not None and location_name is not None:
-            qrcode = QRcode.query.filter_by(id=id, location=location_name).first()
-            if qrcode != None:
-                qrcode.uses += 1
-            else:
-                return jsonify({"action_code": "201"})
-
-            if qrcode.expr_date != None and datetime.now() > qrcode.expr_date:
-                return jsonify({"action_code": "205"})
-
-            student = Students.query.filter_by(username=session["user"]).first()
-            if student != None:
-                student.checked_in = not (student.checked_in)
-            else:
-                return jsonify({"action_code": "202"})
-
-            location = Location.query.filter_by(name=location_name).first()
-            if location != None:
-                if student.checked_in:
-                    student.cur_location = location_name
-                else:
-                    student.cur_location = None
-                lat_1, lng_1, lat_2, lng_2 = map(
-                    math.radians,
-                    [
-                        location.latitude,
-                        location.longitude,
-                        coords["lat"],
-                        coords["lng"],
-                    ],
-                )
-                # dist = get_distance(lat_1, lng_1, lat_2, lng_2)
-                dist = 100
-            else:
-                return jsonify({"action_code": "203"})
-
-            if dist <= qrcode.range_of_qrcode:
-                student.last_logged_attendance_time = datetime.now()
-                db.session.flush()
-                log = AttendanceLog(session["user"], location_name)
-                db.session.add(log)
-
-                db.session.commit()
-            else:
-                return jsonify({"action_code": "204"})
-
-            return jsonify({"action_code": "200"})
-    return redirect(url_for("error"))
-
-
-@app.route("/attendance", methods=["GET", "POST"])
-def log():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if request.method == "GET":
-            id = request.args.get("id")
-            location = request.args.get("loc")
-            print(id, location)
-            if id is not None and location is not None:
-                student = Students.query.filter_by(username=session["user"]).first()
-                if student != None:
-                    check_in_button_text = (
-                        "Check Out" if student.checked_in else "Check In"
-                    )
-                    return render_template(
-                        "log.html",
-                        title="Attendance Logging",
-                        base=set_base_param(),
-                        checked_in=check_in_button_text,
-                    )
-        return redirect(url_for("error"))
-    return redirect(
-        url_for(
-            "login",
-            from_attendance=True,
-            id=request.args.get("id"),
-            location=request.args.get("loc"),
-        )
-    )
-
-
-@app.route("/checkout_student", methods=["POST"])
-def checkout():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if session["is_admin"]:
-            db.session.flush()
-
-            student_data = request.get_json()
-            student = Students.query.filter_by(id=student_data[0]["id"]).first()
-
-            student.checked_in = False
-            student.cur_location = None
-            student.last_logged_attendance_time = datetime.fromtimestamp(
-                int(student_data[1]["time"])
-            )
-
-            db.session.commit()
-
-            return jsonify({"action_code": "200"})
-        return redirect(url_for("error"))
-    return redirect(url_for("login"))
-
-
-@app.route("/delete_student", methods=["POST"])
-def delete_student():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if request.method == "POST":
-            db.session.flush()
-            student_data = request.get_json()
-
-            student = Students.query.filter_by(id=student_data[0]["id"]).first()
-            db.session.delete(student)
-
-            db.session.commit()
-
-            return jsonify({"action_code": "200"})
-    else:
-        return redirect(url_for("error"))
-
-
-@app.route("/delete_location", methods=["POST"])
-def delete_location():
-    if "isLoggedIn" in session and session["isLoggedIn"]:
-        if request.method == "POST":
-            db.session.flush()
-            location_data = request.get_json()
-
-            location = Location.query.filter_by(id=location_data[0]["id"]).first()
-            db.session.delete(location)
-
-            db.session.commit()
-
-            return jsonify({"action_code": "200"})
-    else:
-        return redirect(url_for("error"))
-
-
-def get_distance(lat_1, lng_1, lat_2, lng_2):
-    d_lat = lat_2 - lat_1
-    d_lng = lng_2 - lng_1
-
-    temp = (
-        math.sin(d_lat / 2) ** 2
-        + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2
-    )
-
-    return (
-        6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp))) * 3280.84
-    )  # converting kilometer output into feet
-
-
-test = []
-
-if __name__ == "__main__":
-    db.create_all()
-    if Location.query.filter(Location.name == "online meeting").first() == None:
-        db.session.flush()
-        db.session.add(Location("online meeting", 39, 49, "root"))
-        db.session.commit()
-    if Students.query.filter(Students.username == config["rootuser"]).first() == None:
-        db.session.flush()
-        db.session.add(Students(config["rootuser"], int(os.getenv("ROOT_PASS")), True))
-        db.session.commit()
-    # students = [s.rstrip().lower() for s in open("students.txt", "r").readlines()]
-    # passwords = [n for n in open("passwords.txt", "r")]
-    # for i in range(len(students)):
-    #     db.session.flush()
-    #     db.session.add(Students(students[i], int(passwords[i]), False))
-    #     db.session.commit()
-
-    app.run(debug=True, host="0.0.0.0")
+@app.route("/logout")
+def logout():
+    session["user"] = None
+    session["isLoggedIn"] = False
+    session["is_admin"] = False
+    return redirect(url_for("home"))
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

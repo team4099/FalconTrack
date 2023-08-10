@@ -1,47 +1,59 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="w-2/3 mx-auto mt-5 mb-6">
-    <h1 class="text-4xl text-white font-semibold ">
-        <h1 class="text-4xl text-white font-semibold ">Who is where?</h1>
-        <h2 class="text-lg text-gray-500 font-medium pb-6 border-b-2 border-gray-800 mb-6 mt-4">Use this page to see the
-            people
-            (if any) at all your build spaces.</h2>
-
-        {% for location in locations %}
-        <div class="overflow-x-auto relative shadow-md sm:rounded-lg mb-8">
-            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <tr>
-                        <th scope="col" class="py-3 px-6">
-                            {{ location.name }}
-                        </th>
-                        <th scope="col" class="py-3 px-6">
-                            Check in time
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in active_students %}
-                    <tr class="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
-                        {% if student.cur_location == location.name %}
-                        <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ student.username }}
-                        </th>
-                        <td class="py-4 px-6">
-                            {{ student.last_logged_attendance_time + timezone_offset}}
-                        </td>
-                        {% else %}
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
-
-
+<div class="flex flex-col w-full h-full py-10 gap-10 items-center justify-center lg:justify-start lg:items-start">
+    <h1 class="font-semibold text-3xl lg:text-4xl text-[#EFAE04] lg:ml-[10vw]">
+        Your Attendance
     </h1>
+    <div class="flex flex-col lg:flex-row items-center justify-center lg:items-start lg:justify-start gap-10 w-full h-full lg:ml-[10vw] lg:w-[90vw]">
+        <div class="flex flex-col rounded-3xl w-3/4 h-1/2 lg:w-1/4 lg:h-1/4 items-center justify-center ring {{ 'ring-red-400' if tech_attendance < attendance_requirement else 'ring-green-400' }}">
+            <div class="text-center rounded-t-3xl w-full h-auto pt-4">
+                <h1 class="text-xl text-white">
+                    Technical Attendance
+                </h1>
+            </div>
+            <div class="py-5">
+                <h1 class="font-extrabold text-4xl {{ 'text-red-400' if tech_attendance < attendance_requirement else 'text-green-400' }}">
+                    {{ tech_attendance * 100 }}%
+                </h1>
+            </div>
+        </div>
+        <div class="flex flex-col rounded-3xl w-3/4 h-1/2 lg:w-1/4 lg:h-1/4 items-center justify-center ring {{ 'ring-red-400' if op_attendance < attendance_requirement else 'ring-green-400' }}">
+            <div class="text-center rounded-t-3xl w-full h-auto pt-4">
+                <h1 class="text-xl text-white">
+                    Operational Attendance
+                </h1>
+            </div>
+            <div class="py-5">
+                <h1 class="font-extrabold text-4xl {{ 'text-red-400' if op_attendance < attendance_requirement else 'text-green-400' }}">
+                    {{ op_attendance * 100 }}%
+                </h1>
+            </div>
+        </div>
+    </div>
+    <h1 class="font-semibold text-3xl lg:text-4xl text-[#EFAE04] lg:ml-[10vw]">
+        Your Meetings
+    </h1>
+    <div class="bg-[#161b22] flex flex-col justify-items items-center divide-y divide-gray-700 rounded-3xl w-3/4 h-full lg:ml-[10vw]">
+        {% for meeting in past_meetings %}
+            <div class="flex flex-col w-full h-1/4 gap-2 p-5 items-start justify-start">
+                <h1 class="font-semibold text-xl lg:text-2xl text-white">
+                    {{ meeting["name"] }}
+                </h1>
+                <div class="flex flex-row w-full h-1/2 items-start justify-start gap-2 lg:gap-4">
+                    <div class="bg-[{{ meeting['subteam_color'] }}]/25 rounded-xl">
+                        <h1 class="text-white text-sm px-3">
+                            {{ meeting["subteam"] }}
+                        </h1>
+                    </div>
+                    <div class="{{ 'bg-green-500' if meeting['attended'] else 'bg-red-500' }}/25 rounded-xl">
+                        <h1 class="text-white text-sm px-3">
+                           {{ meeting['attendance_written'] }}
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 </div>
-
 {% endblock content %}

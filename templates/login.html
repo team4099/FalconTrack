@@ -12,19 +12,12 @@
             Name
         </h1>
         <input name="username" id="username" placeholder="saraansh"
-            class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
-        <br>
-
-        <h1 class="text-xl text-white font-semibold mt-2 ml-4 pt-4 mb-2">
-            Student ID
-        </h1>
-        <input name="password" id="password" placeholder="451466" type="password"
-            class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"></input>
+               class="w-[20.5rem] h-10 bg-gray-700 text-gray-300 rounded-lg mt-2 ml-4 text-md border border-gray-500 px-2"/>
         <br>
 
         <button type="" onclick="submit_login()"
-            class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-[{{ base[" color"] }}]
-            rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-[{{ base["color"]
+            class="inline-flex ml-4 mt-6 py-2 px-3 text-sm font-medium text-center text-white bg-[{{ base['color'] }}]
+            rounded-lg hover:bg-amber-500 focus:ring-4 focus:outline-none focus:ring-amber-300 dark:bg-[{{ base['color']
             }}]">
             Log In
             <svg aria-hidden="true" class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"
@@ -87,8 +80,7 @@
     function submit_login() {
         var server_data = [
             { "action": "init" },
-            { "username": document.getElementById("username").value.toLowerCase() },
-            { "password": document.getElementById("password").value }
+            { "username": document.getElementById("username").value.toLowerCase() }
         ];
 
         $.ajax({
